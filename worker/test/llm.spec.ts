@@ -35,13 +35,17 @@ describe('OpenAICompatibleClient', () => {
 
   it('uses GPT-5.6-compatible Chat Completions parameters', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
-    await new OpenAICompatibleClient({ ...config, llmModel: 'gpt-5.6-luna' }).extract('Jalan Mawar 12')
+    await new OpenAICompatibleClient({
+      ...config,
+      llmModel: 'gpt-5.6-luna',
+      llmReasoningEffort: 'high',
+    }).extract('Jalan Mawar 12')
 
     const request = spy.mock.calls[0]?.[1]
     const body = JSON.parse(String(request?.body)) as Record<string, unknown>
     expect(body).toMatchObject({
       model: 'gpt-5.6-luna',
-      reasoning_effort: 'none',
+      reasoning_effort: 'high',
       max_completion_tokens: 800,
     })
     expect(body).not.toHaveProperty('temperature')
@@ -66,6 +70,7 @@ const config: RuntimeConfig = {
   llmModel: 'test-model',
   llmTimeoutMs: 1000,
   llmMaxOutputTokens: 800,
+  llmReasoningEffort: 'none',
   llmResponseFormat: 'prompt',
   fuzzyThreshold: 0.82,
   corsOrigins: new Set(),

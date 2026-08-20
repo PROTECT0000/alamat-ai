@@ -78,6 +78,17 @@ describe('AlamatAI Worker', () => {
     expect(JSON.stringify(result)).not.toContain('replace-me')
   })
 
+  it('rejects unsupported reasoning effort values', async () => {
+    const brokenEnv = { ...env, LLM_REASONING_EFFORT: 'maximum' } as WorkerEnv
+    const readiness = await handleRequest(new Request('https://alamatai.test/readyz'), brokenEnv)
+
+    expect(readiness.status).toBe(503)
+    expect(await readiness.json()).toMatchObject({
+      status: 'not_ready',
+      config_issues: [{ field: 'LLM_REASONING_EFFORT', reason: expect.any(String) }],
+    })
+  })
+
   it('requires the application API key', async () => {
     const response = await dispatch('/v1/parse', {
       method: 'POST',

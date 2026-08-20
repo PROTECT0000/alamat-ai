@@ -4,6 +4,7 @@ export const addressFieldNames = [
 ] as const
 
 export type AddressField = (typeof addressFieldNames)[number]
+export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 export type Address = Record<AddressField, string | null>
 
@@ -97,6 +98,7 @@ export interface WorkerEnv {
   LLM_MODEL: string
   LLM_TIMEOUT_MS: string
   LLM_MAX_OUTPUT_TOKENS: string
+  LLM_REASONING_EFFORT?: string
   LLM_RESPONSE_FORMAT: string
   FUZZY_THRESHOLD: string
   CORS_ORIGINS: string
@@ -110,6 +112,7 @@ export interface RuntimeConfig {
   llmModel: string
   llmTimeoutMs: number
   llmMaxOutputTokens: number
+  llmReasoningEffort: ReasoningEffort
   llmResponseFormat: 'prompt' | 'json_object' | 'json_schema'
   fuzzyThreshold: number
   corsOrigins: Set<string>

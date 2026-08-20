@@ -6,6 +6,7 @@ export type ConfigField =
   | 'LLM_MODEL'
   | 'LLM_TIMEOUT_MS'
   | 'LLM_MAX_OUTPUT_TOKENS'
+  | 'LLM_REASONING_EFFORT'
   | 'LLM_RESPONSE_FORMAT'
   | 'FUZZY_THRESHOLD'
 
@@ -26,6 +27,7 @@ export function loadConfig(env: WorkerEnv): RuntimeConfig {
   const appApiKey = env.APP_API_KEY?.trim() ?? ''
   const llmBaseUrl = (env.LLM_BASE_URL ?? '').trim().replace(/\/+$/, '')
   const llmModel = (env.LLM_MODEL ?? '').trim()
+  const llmReasoningEffort = (env.LLM_REASONING_EFFORT || 'none').trim().toLowerCase()
   const llmResponseFormat = (env.LLM_RESPONSE_FORMAT || 'prompt').trim()
   const llmTimeoutMs = positiveInteger(env.LLM_TIMEOUT_MS, 20_000, 'LLM_TIMEOUT_MS', issues)
   const llmMaxOutputTokens = positiveInteger(env.LLM_MAX_OUTPUT_TOKENS, 800, 'LLM_MAX_OUTPUT_TOKENS', issues)
@@ -34,6 +36,9 @@ export function loadConfig(env: WorkerEnv): RuntimeConfig {
   if (!appApiKey || appApiKey === 'replace-me') issues.push(configIssue('APP_API_KEY', 'wajib diisi dengan secret non-placeholder'))
   if (!llmBaseUrl) issues.push(configIssue('LLM_BASE_URL', 'wajib diisi'))
   if (!llmModel || llmModel === 'replace-me') issues.push(configIssue('LLM_MODEL', 'wajib diisi dengan model non-placeholder'))
+  if (!['none', 'low', 'medium', 'high', 'xhigh', 'max'].includes(llmReasoningEffort)) {
+    issues.push(configIssue('LLM_REASONING_EFFORT', 'harus berupa none, low, medium, high, xhigh, atau max'))
+  }
   if (!['prompt', 'json_object', 'json_schema'].includes(llmResponseFormat)) {
     issues.push(configIssue('LLM_RESPONSE_FORMAT', 'harus berupa prompt, json_object, atau json_schema'))
   }
@@ -47,6 +52,7 @@ export function loadConfig(env: WorkerEnv): RuntimeConfig {
     llmModel,
     llmTimeoutMs,
     llmMaxOutputTokens,
+    llmReasoningEffort: llmReasoningEffort as RuntimeConfig['llmReasoningEffort'],
     llmResponseFormat: llmResponseFormat as RuntimeConfig['llmResponseFormat'],
     fuzzyThreshold,
     corsOrigins: new Set((env.CORS_ORIGINS || '').split(',').map((value) => value.trim()).filter(Boolean)),

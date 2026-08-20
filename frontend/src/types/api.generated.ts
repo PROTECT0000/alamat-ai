@@ -160,7 +160,7 @@ export interface components {
         };
         ConfigIssue: {
             /** @enum {string} */
-            field: "APP_API_KEY" | "LLM_BASE_URL" | "LLM_MODEL" | "LLM_TIMEOUT_MS" | "LLM_MAX_OUTPUT_TOKENS" | "LLM_RESPONSE_FORMAT" | "FUZZY_THRESHOLD";
+            field: "APP_API_KEY" | "LLM_BASE_URL" | "LLM_MODEL" | "LLM_TIMEOUT_MS" | "LLM_MAX_OUTPUT_TOKENS" | "LLM_REASONING_EFFORT" | "LLM_RESPONSE_FORMAT" | "FUZZY_THRESHOLD";
             reason: string;
         };
         ReadinessResponse: {

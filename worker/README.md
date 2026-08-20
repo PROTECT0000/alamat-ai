@@ -14,6 +14,8 @@ Worker sets `keep_vars` in `wrangler.jsonc` and deliberately does not declare a
 - `LLM_MODEL` — provider-specific model name.
 - `LLM_TIMEOUT_MS` — outbound request deadline.
 - `LLM_MAX_OUTPUT_TOKENS` — extraction output limit.
+- `LLM_REASONING_EFFORT` — GPT-5.6 effort: `none`, `low`, `medium`, `high`,
+  `xhigh`, or `max`; defaults to `none`.
 - `LLM_RESPONSE_FORMAT` — `prompt`, `json_object`, or `json_schema`.
 - `FUZZY_THRESHOLD` — deterministic region similarity threshold.
 - `CORS_ORIGINS` — comma-separated browser origins; avoid `*` in production.

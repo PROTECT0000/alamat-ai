@@ -16,6 +16,7 @@ export default defineConfig({
           LLM_MODEL: 'test-model',
           LLM_TIMEOUT_MS: '20000',
           LLM_MAX_OUTPUT_TOKENS: '800',
+          LLM_REASONING_EFFORT: 'none',
           LLM_RESPONSE_FORMAT: 'prompt',
           FUZZY_THRESHOLD: '0.82',
           CORS_ORIGINS: '*',
