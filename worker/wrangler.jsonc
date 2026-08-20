@@ -25,7 +25,7 @@
     {
       "binding": "DB",
       "database_name": "alamatai-gazetteer",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "1fa86306-3e88-4825-b4c1-4151b10d4ecb",
       "migrations_dir": "migrations"
     }
   ]
