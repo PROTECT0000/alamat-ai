@@ -61,8 +61,7 @@ export class OpenAICompatibleClient {
     const body = JSON.stringify({
       model: this.config.llmModel,
       messages,
-      temperature: 0,
-      max_tokens: this.config.llmMaxOutputTokens,
+      ...completionOptions(this.config.llmModel, this.config.llmMaxOutputTokens),
       ...responseFormat(this.config.llmResponseFormat),
     })
     let response: Response
@@ -108,6 +107,19 @@ export class OpenAICompatibleClient {
       throw new LLMError('invalid_response', 'provider response contained no message content')
     }
     return content
+  }
+}
+
+function completionOptions(model: string, maxOutputTokens: number): Record<string, unknown> {
+  if (/^gpt-5\.6(?:-|$)/i.test(model)) {
+    return {
+      reasoning_effort: 'none',
+      max_completion_tokens: maxOutputTokens,
+    }
+  }
+  return {
+    temperature: 0,
+    max_tokens: maxOutputTokens,
   }
 }
 

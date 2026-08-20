@@ -33,6 +33,21 @@ describe('OpenAICompatibleClient', () => {
     expect(spy).toHaveBeenCalledTimes(2)
   })
 
+  it('uses GPT-5.6-compatible Chat Completions parameters', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
+    await new OpenAICompatibleClient({ ...config, llmModel: 'gpt-5.6-luna' }).extract('Jalan Mawar 12')
+
+    const request = spy.mock.calls[0]?.[1]
+    const body = JSON.parse(String(request?.body)) as Record<string, unknown>
+    expect(body).toMatchObject({
+      model: 'gpt-5.6-luna',
+      reasoning_effort: 'none',
+      max_completion_tokens: 800,
+    })
+    expect(body).not.toHaveProperty('temperature')
+    expect(body).not.toHaveProperty('max_tokens')
+  })
+
   it('classifies provider rate limits without reading the body', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('sensitive provider body', {
       status: 429,
