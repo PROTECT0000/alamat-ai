@@ -1,6 +1,6 @@
 import { publicAddress } from './address'
 import { generateClarification } from './clarification'
-import { ConfigError, configIsPresent, loadConfig } from './config'
+import { ConfigError, configIssues, loadConfig, type ConfigIssue } from './config'
 import { D1Gazetteer } from './gazetteer'
 import { LLMError, OpenAICompatibleClient } from './llm'
 import type { ParseResponse, WorkerEnv } from './types'
@@ -68,12 +68,14 @@ async function readiness(env: WorkerEnv): Promise<Response> {
   } catch {
     gazetteerReady = false
   }
-  const llmConfigured = configIsPresent(env)
+  const workerConfigIssues = configIssues(env)
+  const llmConfigured = workerConfigIssues.length === 0
   const ready = gazetteerReady && llmConfigured
   return json({
     status: ready ? 'ready' : 'not_ready',
     version: env.SERVICE_VERSION || 'dev',
     llm_configured: llmConfigured,
+    config_issues: workerConfigIssues,
     gazetteer_ready: gazetteerReady,
     model: env.LLM_MODEL || '',
     gazetteer_version: gazetteerVersion,
@@ -115,7 +117,14 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
     config = loadConfig(env)
   } catch (error) {
     if (error instanceof ConfigError) {
-      return errorResponse(503, 'SERVICE_NOT_READY', 'Konfigurasi Worker belum lengkap.', requestId)
+      const fields = error.issues.map(({ field }) => field).join(', ')
+      return errorResponse(
+        503,
+        'SERVICE_NOT_READY',
+        `Konfigurasi Worker belum lengkap atau invalid: ${fields}.`,
+        requestId,
+        error.issues,
+      )
     }
     throw error
   }
@@ -238,8 +247,15 @@ function json(value: unknown, status = 200): Response {
   })
 }
 
-function errorResponse(status: number, code: APIErrorCode, message: string, requestId: string): Response {
-  return json({ error: { code, message, request_id: requestId } }, status)
+function errorResponse(
+  status: number,
+  code: APIErrorCode,
+  message: string,
+  requestId: string,
+  workerConfigIssues?: ConfigIssue[],
+): Response {
+  const error = { code, message, request_id: requestId, ...(workerConfigIssues ? { config_issues: workerConfigIssues } : {}) }
+  return json({ error }, status)
 }
 
 function errorName(value: unknown): string {

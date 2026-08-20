@@ -1,7 +1,9 @@
 import { env } from 'cloudflare:workers'
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { handleRequest } from '../src/app'
 import worker from '../src/index'
+import type { WorkerEnv } from '../src/types'
 
 const IncomingRequest = Request<unknown, IncomingRequestCfProperties>
 
@@ -44,7 +46,36 @@ describe('AlamatAI Worker', () => {
     expect((await dispatch('/healthz')).status).toBe(200)
     const ready = await dispatch('/readyz')
     expect(ready.status).toBe(200)
-    expect(await ready.json()).toMatchObject({ status: 'ready', gazetteer_ready: true, llm_configured: true })
+    expect(await ready.json()).toMatchObject({
+      status: 'ready',
+      gazetteer_ready: true,
+      llm_configured: true,
+      config_issues: [],
+    })
+  })
+
+  it('reports invalid configuration fields without exposing their values', async () => {
+    const brokenEnv = { ...env, APP_API_KEY: 'test-app-key', LLM_MODEL: 'replace-me' } as WorkerEnv
+    const readiness = await handleRequest(new Request('https://alamatai.test/readyz'), brokenEnv)
+    expect(await readiness.json()).toMatchObject({
+      status: 'not_ready',
+      llm_configured: false,
+      config_issues: [{ field: 'LLM_MODEL', reason: expect.any(String) }],
+    })
+
+    const response = await handleRequest(new Request('https://alamatai.test/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-app-key' },
+      body: JSON.stringify({ text: 'Jalan Mawar 12 Depok' }),
+    }), brokenEnv)
+    const result = await response.json<Record<string, any>>()
+
+    expect(response.status).toBe(503)
+    expect(result.error.message).toContain('LLM_MODEL')
+    expect(result.error.config_issues).toEqual([
+      { field: 'LLM_MODEL', reason: 'wajib diisi dengan model non-placeholder' },
+    ])
+    expect(JSON.stringify(result)).not.toContain('replace-me')
   })
 
   it('requires the application API key', async () => {

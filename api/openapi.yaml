@@ -218,6 +218,10 @@ components:
         code: { $ref: '#/components/schemas/APIErrorCode' }
         message: { type: string }
         request_id: { type: string }
+        config_issues:
+          type: array
+          description: Safe configuration diagnostics; values and secrets are never returned.
+          items: { $ref: '#/components/schemas/ConfigIssue' }
     APIErrorResponse:
       type: object
       additionalProperties: false
@@ -241,14 +245,26 @@ components:
         commit_hash: { type: string }
         license: { type: string }
         record_count: { type: integer, format: int64, minimum: 0 }
+    ConfigIssue:
+      type: object
+      additionalProperties: false
+      required: [field, reason]
+      properties:
+        field:
+          type: string
+          enum: [APP_API_KEY, LLM_BASE_URL, LLM_MODEL, LLM_TIMEOUT_MS, LLM_MAX_OUTPUT_TOKENS, LLM_RESPONSE_FORMAT, FUZZY_THRESHOLD]
+        reason: { type: string }
     ReadinessResponse:
       type: object
       additionalProperties: false
-      required: [status, version, llm_configured, gazetteer_ready, model, gazetteer_version, sources]
+      required: [status, version, llm_configured, config_issues, gazetteer_ready, model, gazetteer_version, sources]
       properties:
         status: { type: string, enum: [ready, not_ready] }
         version: { type: string }
         llm_configured: { type: boolean }
+        config_issues:
+          type: array
+          items: { $ref: '#/components/schemas/ConfigIssue' }
         gazetteer_ready: { type: boolean }
         model: { type: string }
         gazetteer_version: { type: string }

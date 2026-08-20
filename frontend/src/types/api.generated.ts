@@ -138,6 +138,8 @@ export interface components {
             code: components["schemas"]["APIErrorCode"];
             message: string;
             request_id: string;
+            /** @description Safe configuration diagnostics; values and secrets are never returned. */
+            config_issues?: components["schemas"]["ConfigIssue"][];
         };
         APIErrorResponse: {
             error: components["schemas"]["APIError"];
@@ -156,11 +158,17 @@ export interface components {
             /** Format: int64 */
             record_count: number;
         };
+        ConfigIssue: {
+            /** @enum {string} */
+            field: "APP_API_KEY" | "LLM_BASE_URL" | "LLM_MODEL" | "LLM_TIMEOUT_MS" | "LLM_MAX_OUTPUT_TOKENS" | "LLM_RESPONSE_FORMAT" | "FUZZY_THRESHOLD";
+            reason: string;
+        };
         ReadinessResponse: {
             /** @enum {string} */
             status: "ready" | "not_ready";
             version: string;
             llm_configured: boolean;
+            config_issues: components["schemas"]["ConfigIssue"][];
             gazetteer_ready: boolean;
             model: string;
             gazetteer_version: string;
