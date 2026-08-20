@@ -1,0 +1,29 @@
+{
+  "name": "@alamatai/worker",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "types": "wrangler types src/worker-configuration.d.ts --strict-vars=false",
+    "types:check": "wrangler types src/worker-configuration.d.ts --strict-vars=false --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate:local": "wrangler d1 migrations apply alamatai-gazetteer --local",
+    "db:migrate:remote": "wrangler d1 migrations apply alamatai-gazetteer --remote",
+    "db:seed:generate": "node scripts/generate-d1-seed.mjs",
+    "db:seed:local": "npm run db:seed:generate && wrangler d1 execute alamatai-gazetteer --local --file=.generated/gazetteer-seed.sql",
+    "db:seed:remote": "npm run db:seed:generate && wrangler d1 execute alamatai-gazetteer --remote --file=.generated/gazetteer-seed.sql",
+    "data:verify": "node scripts/generate-d1-seed.mjs --verify-only"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.22.0",
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.124.0"
+  }
+}

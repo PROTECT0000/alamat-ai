@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "LLM_TIMEOUT",
+    "message": "Model tidak merespons dalam batas waktu.",
+    "request_id": "9f4c81f59dd44f4da0b170c3e6f5bd66"
+  }
+}

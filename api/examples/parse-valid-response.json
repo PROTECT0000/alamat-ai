@@ -1,0 +1,32 @@
+{
+  "request_id": "9f4c81f59dd44f4da0b170c3e6f5bd66",
+  "address": {
+    "jalan": "Jl. Mawar",
+    "nomor": "12",
+    "rt": "5",
+    "rw": "2",
+    "blok": null,
+    "unit": null,
+    "desa_kelurahan": "Sukamaju",
+    "kecamatan": "Cilodong",
+    "kabupaten_kota": "Kota Depok",
+    "provinsi": "Jawa Barat",
+    "kode_pos": "16415",
+    "patokan": "depan masjid Al-Ikhlas",
+    "penerima": null,
+    "kontak": null,
+    "catatan": null
+  },
+  "validation": {
+    "status": "valid",
+    "admin": {
+      "desa_kelurahan": { "input": "Sukamaju", "code": "32.76.08.1001", "name": "Sukamaju", "match": "exact", "score": 1 },
+      "kecamatan": { "input": "Cilodong", "code": "32.76.08", "name": "Cilodong", "match": "exact", "score": 1 },
+      "kabupaten_kota": { "input": "Kota Depok", "code": "32.76", "name": "Kota Depok", "match": "exact", "score": 1 },
+      "provinsi": { "input": "Jawa Barat", "code": "32", "name": "Jawa Barat", "match": "exact", "score": 1 }
+    }
+  },
+  "issues": [],
+  "clarification_message": null,
+  "meta": { "model": "example-model", "llm_attempts": 1, "latency_ms": 180, "gazetteer_version": "example-sha" }
+}

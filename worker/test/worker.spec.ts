@@ -1,0 +1,85 @@
+import { env } from 'cloudflare:workers'
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import worker from '../src/index'
+
+const IncomingRequest = Request<unknown, IncomingRequestCfProperties>
+
+const extraction = {
+  is_address: true,
+  jalan: 'Jalan Mawar',
+  nomor: '12',
+  rt: null,
+  rw: null,
+  blok: null,
+  unit: null,
+  desa_kelurahan: 'Sukamaju',
+  kecamatan: 'Cilodong',
+  kabupaten_kota: 'Kota Depok',
+  provinsi: 'Jawa Barat',
+  kode_pos: null,
+  patokan: null,
+  penerima: null,
+  kontak: null,
+  catatan: null,
+}
+
+describe('AlamatAI Worker', () => {
+  beforeEach(async () => {
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM region_aliases'),
+      env.DB.prepare('DELETE FROM regions'),
+      env.DB.prepare('DELETE FROM source_metadata'),
+      env.DB.prepare("INSERT INTO regions VALUES ('32', 'province', 'province', NULL, 'Jawa Barat', 'jawa barat')"),
+      env.DB.prepare("INSERT INTO regions VALUES ('32.76', 'city', 'kota', '32', 'Kota Depok', 'kota depok')"),
+      env.DB.prepare("INSERT INTO regions VALUES ('32.76.01', 'district', 'kecamatan', '32.76', 'Cilodong', 'cilodong')"),
+      env.DB.prepare("INSERT INTO regions VALUES ('32.76.01.1001', 'village', 'kelurahan', '32.76.01', 'Sukamaju', 'sukamaju')"),
+      env.DB.prepare("INSERT INTO source_metadata VALUES (1, 'cahyadsn/wilayah', 'https://github.com/cahyadsn/wilayah', 'fixture-commit', NULL, 'MIT', 'fixture', 'machine_readable_primary', 4, '2026-08-20T00:00:00Z', 'test fixture')"),
+    ])
+  })
+
+  afterEach(() => vi.restoreAllMocks())
+
+  it('serves public health and readiness endpoints', async () => {
+    expect((await dispatch('/healthz')).status).toBe(200)
+    const ready = await dispatch('/readyz')
+    expect(ready.status).toBe(200)
+    expect(await ready.json()).toMatchObject({ status: 'ready', gazetteer_ready: true, llm_configured: true })
+  })
+
+  it('requires the application API key', async () => {
+    const response = await dispatch('/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'Jalan Mawar 12 Depok' }),
+    })
+    expect(response.status).toBe(401)
+  })
+
+  it('extracts through an OpenAI-compatible endpoint and validates with D1', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify(extraction) } }],
+    }), { headers: { 'Content-Type': 'application/json' } }))
+
+    const response = await dispatch('/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-app-key' },
+      body: JSON.stringify({ text: 'Jalan Mawar 12, Sukamaju, Cilodong, Kota Depok, Jawa Barat' }),
+    })
+    const result = await response.json<Record<string, any>>()
+
+    expect(response.status).toBe(200)
+    expect(result.validation.status).toBe('valid')
+    expect(result.validation.admin.desa_kelurahan.code).toBe('32.76.01.1001')
+    expect(result.meta).toMatchObject({ model: 'test-model', llm_attempts: 1, gazetteer_version: 'fixture-commit' })
+    expect(fetchSpy).toHaveBeenCalledOnce()
+    expect(response.headers.get('X-Request-ID')).toMatch(/^[a-f0-9]{32}$/)
+  })
+})
+
+async function dispatch(path: string, init?: RequestInit<IncomingRequestCfProperties>): Promise<Response> {
+  const context = createExecutionContext()
+  const response = await worker.fetch(new IncomingRequest(`https://alamatai.test${path}`, init), env, context)
+  await waitOnExecutionContext(context)
+  return response
+}

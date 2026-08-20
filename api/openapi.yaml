@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: AlamatAI API
+  version: 0.2.0
+  description: Parse alamat Indonesia informal melalui Cloudflare Worker dan validasi hierarki administratifnya dengan D1.
+servers:
+  - url: http://localhost:8787
+tags:
+  - name: Operations
+  - name: Address
+paths:
+  /healthz:
+    get:
+      tags: [Operations]
+      operationId: getHealth
+      summary: Process liveness
+      responses:
+        '200':
+          description: Process is alive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /readyz:
+    get:
+      tags: [Operations]
+      operationId: getReadiness
+      summary: Runtime readiness without contacting the LLM provider
+      responses:
+        '200':
+          description: Service is ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+  /v1/parse:
+    post:
+      tags: [Address]
+      operationId: parseAddress
+      summary: Parse and validate one Indonesian address
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParseRequest'
+            examples:
+              messyAddress:
+                value:
+                  text: Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi
+      responses:
+        '200':
+          description: Address was processed. Inspect validation.status for the result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParseResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/ErrorResponse'
+        '415':
+          $ref: '#/components/responses/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+        '504':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  responses:
+    ErrorResponse:
+      description: Structured API error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIErrorResponse'
+  schemas:
+    ParseRequest:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    Address:
+      type: object
+      additionalProperties: false
+      required: [jalan, nomor, rt, rw, blok, unit, desa_kelurahan, kecamatan, kabupaten_kota, provinsi, kode_pos, patokan, penerima, kontak, catatan]
+      properties:
+        jalan: { type: string, nullable: true, maxLength: 256 }
+        nomor: { type: string, nullable: true, maxLength: 64 }
+        rt: { type: string, nullable: true, maxLength: 16 }
+        rw: { type: string, nullable: true, maxLength: 16 }
+        blok: { type: string, nullable: true, maxLength: 64 }
+        unit: { type: string, nullable: true, maxLength: 128 }
+        desa_kelurahan: { type: string, nullable: true, maxLength: 256 }
+        kecamatan: { type: string, nullable: true, maxLength: 256 }
+        kabupaten_kota: { type: string, nullable: true, maxLength: 256 }
+        provinsi: { type: string, nullable: true, maxLength: 256 }
+        kode_pos: { type: string, nullable: true, maxLength: 16 }
+        patokan: { type: string, nullable: true, maxLength: 500 }
+        penerima: { type: string, nullable: true, maxLength: 256 }
+        kontak: { type: string, nullable: true, maxLength: 64 }
+        catatan: { type: string, nullable: true, maxLength: 500 }
+    MatchType:
+      type: string
+      enum: [exact, alias, fuzzy, inferred, none]
+    AdminMatch:
+      type: object
+      additionalProperties: false
+      required: [input, code, name, match, score]
+      properties:
+        input: { type: string, nullable: true }
+        code: { type: string, nullable: true }
+        name: { type: string, nullable: true }
+        match: { $ref: '#/components/schemas/MatchType' }
+        score: { type: number, format: double, minimum: 0, maximum: 1 }
+    AdminValidation:
+      type: object
+      additionalProperties: false
+      required: [desa_kelurahan, kecamatan, kabupaten_kota, provinsi]
+      properties:
+        desa_kelurahan: { $ref: '#/components/schemas/AdminMatch' }
+        kecamatan: { $ref: '#/components/schemas/AdminMatch' }
+        kabupaten_kota: { $ref: '#/components/schemas/AdminMatch' }
+        provinsi: { $ref: '#/components/schemas/AdminMatch' }
+    ValidationStatus:
+      type: string
+      enum: [valid, needs_clarification, invalid]
+    Validation:
+      type: object
+      additionalProperties: false
+      required: [status, admin]
+      properties:
+        status: { $ref: '#/components/schemas/ValidationStatus' }
+        admin: { $ref: '#/components/schemas/AdminValidation' }
+    IssueCode:
+      type: string
+      enum: [MISSING_FIELD, UNKNOWN_REGION, AMBIGUOUS_REGION, HIERARCHY_MISMATCH, POSTAL_CODE_MISMATCH, POSTAL_CODE_UNKNOWN, NON_ADDRESS_INPUT]
+    Severity:
+      type: string
+      enum: [info, warning, error]
+    Candidate:
+      type: object
+      additionalProperties: false
+      required: [code, name, parent]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        parent: { type: string, nullable: true }
+    Issue:
+      type: object
+      additionalProperties: false
+      required: [code, field, severity, message, candidates]
+      properties:
+        code: { $ref: '#/components/schemas/IssueCode' }
+        field: { type: string, nullable: true }
+        severity: { $ref: '#/components/schemas/Severity' }
+        message: { type: string }
+        candidates:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/Candidate' }
+    ParseMetadata:
+      type: object
+      additionalProperties: false
+      required: [model, llm_attempts, latency_ms, gazetteer_version]
+      properties:
+        model: { type: string }
+        llm_attempts: { type: integer, minimum: 1, maximum: 2 }
+        latency_ms: { type: integer, format: int64, minimum: 0 }
+        gazetteer_version: { type: string }
+    ParseResponse:
+      type: object
+      additionalProperties: false
+      required: [request_id, address, validation, issues, clarification_message, meta]
+      properties:
+        request_id: { type: string }
+        address: { $ref: '#/components/schemas/Address' }
+        validation: { $ref: '#/components/schemas/Validation' }
+        issues:
+          type: array
+          items: { $ref: '#/components/schemas/Issue' }
+        clarification_message: { type: string, nullable: true, maxLength: 320 }
+        meta: { $ref: '#/components/schemas/ParseMetadata' }
+    APIErrorCode:
+      type: string
+      enum: [INVALID_REQUEST, UNAUTHORIZED, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, VALIDATION_ERROR, TOO_BUSY, LLM_UPSTREAM_ERROR, LLM_UPSTREAM_RATE_LIMITED, LLM_TIMEOUT, LLM_INVALID_RESPONSE, SERVICE_NOT_READY, INTERNAL_ERROR]
+    APIError:
+      type: object
+      additionalProperties: false
+      required: [code, message, request_id]
+      properties:
+        code: { $ref: '#/components/schemas/APIErrorCode' }
+        message: { type: string }
+        request_id: { type: string }
+    APIErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error: { $ref: '#/components/schemas/APIError' }
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, version]
+      properties:
+        status: { type: string, enum: [ok] }
+        version: { type: string }
+    SourceMetadata:
+      type: object
+      additionalProperties: false
+      required: [source_name, source_role, commit_hash, license, record_count]
+      properties:
+        source_name: { type: string }
+        source_role: { type: string, enum: [official_benchmark, machine_readable_primary, cross_check, enrichment] }
+        commit_hash: { type: string }
+        license: { type: string }
+        record_count: { type: integer, format: int64, minimum: 0 }
+    ReadinessResponse:
+      type: object
+      additionalProperties: false
+      required: [status, version, llm_configured, gazetteer_ready, model, gazetteer_version, sources]
+      properties:
+        status: { type: string, enum: [ready, not_ready] }
+        version: { type: string }
+        llm_configured: { type: boolean }
+        gazetteer_ready: { type: boolean }
+        model: { type: string }
+        gazetteer_version: { type: string }
+        sources:
+          type: array
+          items: { $ref: '#/components/schemas/SourceMetadata' }

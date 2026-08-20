@@ -1,0 +1,28 @@
+{
+  "request_id": "9f4c81f59dd44f4da0b170c3e6f5bd66",
+  "address": {
+    "jalan": "Jl. Mawar", "nomor": null, "rt": null, "rw": null,
+    "blok": null, "unit": null, "desa_kelurahan": null, "kecamatan": null,
+    "kabupaten_kota": "Bogor", "provinsi": null, "kode_pos": null,
+    "patokan": null, "penerima": null, "kontak": null, "catatan": null
+  },
+  "validation": {
+    "status": "needs_clarification",
+    "admin": {
+      "desa_kelurahan": { "input": null, "code": null, "name": null, "match": "none", "score": 0 },
+      "kecamatan": { "input": null, "code": null, "name": null, "match": "none", "score": 0 },
+      "kabupaten_kota": { "input": "Bogor", "code": null, "name": null, "match": "none", "score": 0 },
+      "provinsi": { "input": null, "code": null, "name": null, "match": "none", "score": 0 }
+    }
+  },
+  "issues": [{
+    "code": "AMBIGUOUS_REGION", "field": "kabupaten_kota", "severity": "warning",
+    "message": "Bogor dapat merujuk ke lebih dari satu wilayah.",
+    "candidates": [
+      { "code": "32.01", "name": "Kabupaten Bogor", "parent": "Jawa Barat" },
+      { "code": "32.71", "name": "Kota Bogor", "parent": "Jawa Barat" }
+    ]
+  }],
+  "clarification_message": "Halo kak, alamatnya berada di Kabupaten Bogor atau Kota Bogor ya?",
+  "meta": { "model": "example-model", "llm_attempts": 1, "latency_ms": 180, "gazetteer_version": "example-sha" }
+}

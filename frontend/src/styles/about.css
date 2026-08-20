@@ -1,0 +1,43 @@
+/* About, architecture, privacy, provenance, not-found, and footer sections. */
+.about-hero { padding: 96px 0 90px; border-bottom: 1px solid var(--line); }
+.about-hero h1 { margin-top: 16px; font-size: clamp(42px, 6vw, 66px); line-height: 1.04; }
+.about-hero p { margin-top: 22px; max-width: 720px; font-size: 17px; }
+.architecture-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 90px; align-items: start; }
+.architecture-copy { position: sticky; top: 100px; }
+.architecture-copy p { margin-top: 18px; }
+.architecture-flow { display: grid; }
+.architecture-flow article { display: grid; grid-template-columns: 42px 1fr; gap: 16px; padding: 23px 0; border-bottom: 1px solid var(--line); }
+.architecture-flow article:first-child { padding-top: 0; }
+.architecture-flow article > span { width: 40px; height: 40px; display: grid; place-items: center; background: var(--surface-strong); border-radius: var(--radius-md); }
+.architecture-flow small { color: var(--muted); font: 400 10px/1 'JetBrains Mono', monospace; }
+.architecture-flow h3 { margin-top: 5px; font-size: 17px; }
+.architecture-flow p { margin-top: 5px; font-size: 13px; }
+.section--dark { background: var(--dark); color: white; }
+.dark-section-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 100px; }
+.dark-section-grid h2 { margin-top: 13px; max-width: 550px; font-size: clamp(34px, 4vw, 48px); line-height: 1.1; }
+.dark-kicker { color: #8dbbe6; }
+.dark-points { display: grid; gap: 28px; }
+.dark-points article { display: grid; grid-template-columns: 24px 1fr; gap: 14px; }
+.dark-points svg { color: #a8c8e8; }
+.dark-points h3 { font-size: 16px; }
+.dark-points p { margin-top: 5px; color: #b0b4ba; font-size: 13px; }
+.data-section { display: grid; grid-template-columns: .9fr 1.1fr; gap: 90px; align-items: center; }
+.data-copy p { margin-top: 18px; }
+.data-card { overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); }
+.data-card > div { padding: 19px 21px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 5px 20px; border-bottom: 1px solid var(--line); }
+.data-card > div:last-child { border-bottom: 0; }
+.data-card span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.data-card strong { font-size: 13px; font-weight: 500; }
+.data-card small { grid-column: 2; color: var(--muted); font-size: 10px; }
+.not-found { min-height: 70vh; padding-block: 130px; display: flex; flex-direction: column; align-items: flex-start; }
+.not-found h1 { max-width: 700px; margin-top: 14px; font-size: clamp(40px, 6vw, 64px); line-height: 1.05; }
+.not-found p { margin: 18px 0 28px; }
+
+.site-footer { padding: 68px 0 28px; border-top: 1px solid var(--line); background: white; }
+.footer-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 60px; }
+.footer-brand p { max-width: 290px; margin-top: 16px; font-size: 13px; }
+.footer-grid h3 { margin-bottom: 14px; font-size: 12px; letter-spacing: 0; }
+.footer-grid > div:not(.footer-brand) { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.footer-grid > div:not(.footer-brand) a { color: var(--body); font-size: 12px; }
+.footer-grid a:hover { color: var(--ink); }
+.footer-bottom { margin-top: 52px; padding-top: 20px; display: flex; justify-content: space-between; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }

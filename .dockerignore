@@ -1,0 +1,16 @@
+.git
+.env
+coverage.out
+frontend/node_modules
+frontend/dist
+frontend/coverage
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+worker/node_modules
+worker/dist
+worker/.wrangler
+worker/.generated
+plan
+docs
+data/raw

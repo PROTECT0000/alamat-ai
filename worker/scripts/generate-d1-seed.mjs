@@ -1,0 +1,167 @@
+import { createHash } from 'node:crypto'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const workerRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const repositoryRoot = resolve(workerRoot, '..')
+const sourcePath = resolve(repositoryRoot, 'data/raw/wilayah.sql')
+const checksumPath = resolve(repositoryRoot, 'data/raw/wilayah.sql.sha256')
+const commitPath = resolve(repositoryRoot, 'data/raw/wilayah.COMMIT')
+const outputPath = resolve(workerRoot, '.generated/gazetteer-seed.sql')
+const verifyOnly = process.argv.includes('--verify-only')
+
+const source = await readFile(sourcePath)
+const expectedChecksum = (await readFile(checksumPath, 'utf8')).trim().split(/\s+/, 1)[0]
+const actualChecksum = createHash('sha256').update(source).digest('hex')
+if (actualChecksum !== expectedChecksum) {
+  throw new Error(`wilayah.sql checksum mismatch: got ${actualChecksum}, expected ${expectedChecksum}`)
+}
+
+const regions = parseWilayahSql(source.toString('utf8'))
+verifyRegions(regions)
+const aliases = regions.flatMap((region) => systematicAliases(region).map((alias) => ({ code: region.code, alias })))
+
+const counts = countByLevel(regions)
+console.log(`gazetteer verified: ${counts.province}/${counts.city}/${counts.district}/${counts.village}, zero orphans, zero duplicates, ${aliases.length} aliases`)
+
+if (!verifyOnly) {
+  const commitHash = (await readFile(commitPath, 'utf8')).trim()
+  const statements = [
+    'PRAGMA defer_foreign_keys = TRUE;',
+    'DELETE FROM postal_codes;',
+    'DELETE FROM region_aliases;',
+    'DELETE FROM regions;',
+    'DELETE FROM source_metadata;',
+    ...batchedInsert(
+      'regions(code, level, kind, parent_code, name, normalized_name)',
+      regions.map((region) => [region.code, region.level, region.kind, region.parentCode || null, region.name, normalizeName(region.name)]),
+    ),
+    ...batchedInsert(
+      'region_aliases(region_code, normalized_alias, alias_type)',
+      aliases.map(({ code, alias }) => [code, alias, 'systematic']),
+      'INSERT OR IGNORE',
+    ),
+    `INSERT INTO source_metadata(id, source_name, source_url, commit_hash, license, regulation_version, source_role, record_count, build_timestamp, notes) VALUES
+      (1, 'Kepmendagri', 'https://www.kemendagri.go.id/', 'not-applicable', 'public document', 'Kepmendagri No. 300.2.2-2138 Tahun 2025', 'official_benchmark', ${regions.length}, '2026-02-13T16:45:21Z', 'Official count benchmark; machine-readable rows are from the separately identified source.'),
+      (2, 'cahyadsn/wilayah', 'https://github.com/cahyadsn/wilayah', ${sqlValue(commitHash)}, 'MIT', 'Kepmendagri No. 300.2.2-2138 Tahun 2025', 'machine_readable_primary', ${regions.length}, '2026-02-13T16:45:21Z', 'Community-maintained machine-readable mirror; not described as authoritative.');`,
+    'PRAGMA optimize;',
+    '',
+  ]
+  await mkdir(dirname(outputPath), { recursive: true })
+  await writeFile(outputPath, statements.join('\n'), 'utf8')
+  console.log(`D1 seed written to ${outputPath}`)
+}
+
+function parseWilayahSql(text) {
+  const regions = []
+  for (let offset = 0; offset < text.length;) {
+    const tuple = text.indexOf("('", offset)
+    if (tuple < 0) break
+    const codeValue = parseSqlString(text, tuple + 1)
+    if (!codeValue || !/^\d{2}(\.\d{2}){0,2}(\.\d{4})?$/.test(codeValue.value)) {
+      offset = tuple + 2
+      continue
+    }
+    let nameOffset = codeValue.next
+    while ([',', ' ', '\t'].includes(text[nameOffset])) nameOffset++
+    const nameValue = parseSqlString(text, nameOffset)
+    if (!nameValue) throw new Error(`invalid SQL name literal near byte ${nameOffset}`)
+    regions.push(regionFromCode(codeValue.value, nameValue.value))
+    offset = nameValue.next
+  }
+  if (regions.length === 0) throw new Error('no wilayah rows found')
+  return regions
+}
+
+function parseSqlString(source, start) {
+  if (source[start] !== "'") return null
+  let value = ''
+  for (let index = start + 1; index < source.length; index++) {
+    if (source[index] !== "'") {
+      value += source[index]
+      continue
+    }
+    if (source[index + 1] === "'") {
+      value += "'"
+      index++
+      continue
+    }
+    return { value, next: index + 1 }
+  }
+  return null
+}
+
+function regionFromCode(code, name) {
+  const parts = code.split('.')
+  if (parts.length === 1) return { code, name, level: 'province', kind: 'province', parentCode: '' }
+  if (parts.length === 2) return {
+    code,
+    name,
+    level: 'city',
+    kind: name.toLocaleLowerCase('id-ID').startsWith('kota ') ? 'kota' : 'kabupaten',
+    parentCode: parts[0],
+  }
+  if (parts.length === 3) return { code, name, level: 'district', kind: 'kecamatan', parentCode: parts.slice(0, 2).join('.') }
+  if (parts.length === 4) return {
+    code,
+    name,
+    level: 'village',
+    kind: parts[3].startsWith('1') ? 'kelurahan' : 'desa',
+    parentCode: parts.slice(0, 3).join('.'),
+  }
+  throw new Error(`unexpected region code ${code}`)
+}
+
+function verifyRegions(regions) {
+  const expected = { province: 38, city: 514, district: 7285, village: 83762 }
+  const counts = countByLevel(regions)
+  for (const [level, count] of Object.entries(expected)) {
+    if (counts[level] !== count) throw new Error(`${level} count = ${counts[level]}, expected ${count}`)
+  }
+  const codes = new Set()
+  for (const region of regions) {
+    if (codes.has(region.code)) throw new Error(`duplicate code ${region.code}`)
+    codes.add(region.code)
+  }
+  for (const region of regions) {
+    if (region.parentCode && !codes.has(region.parentCode)) throw new Error(`${region.code} has missing parent ${region.parentCode}`)
+  }
+}
+
+function countByLevel(regions) {
+  return regions.reduce((counts, region) => ({ ...counts, [region.level]: (counts[region.level] ?? 0) + 1 }), {})
+}
+
+function systematicAliases(region) {
+  const name = normalizeName(region.name)
+  const aliases = new Set()
+  for (const prefix of ['kabupaten ', 'kota ', 'provinsi ', 'kab ', 'kec ', 'kel ', 'desa ']) {
+    if (name.startsWith(prefix)) aliases.add(name.slice(prefix.length).trim())
+  }
+  if (name === 'daerah khusus ibukota jakarta' || name === 'dki jakarta') {
+    aliases.add('jakarta')
+    aliases.add('dki jakarta')
+  }
+  return [...aliases].filter((value) => value && value !== name).sort()
+}
+
+function normalizeName(value) {
+  return value.trim().toLocaleLowerCase('id-ID').replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+}
+
+function batchedInsert(table, rows, verb = 'INSERT') {
+  const batchSize = 200
+  const statements = []
+  for (let offset = 0; offset < rows.length; offset += batchSize) {
+    const values = rows.slice(offset, offset + batchSize).map((row) => `(${row.map(sqlValue).join(', ')})`)
+    statements.push(`${verb} INTO ${table} VALUES\n${values.join(',\n')};`)
+  }
+  return statements
+}
+
+function sqlValue(value) {
+  if (value === null) return 'NULL'
+  if (typeof value === 'number') return String(value)
+  return `'${String(value).replaceAll("'", "''")}'`
+}
