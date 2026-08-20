@@ -1,7 +1,6 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { BrandMark } from './BrandMark'
 
 const navItems = [
   { to: '/', label: 'Beranda', end: true },
@@ -15,8 +14,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="container nav-shell">
         <Link className="brand" to="/" aria-label="AlamatAI beranda" onClick={() => setOpen(false)}>
-          <BrandMark />
-          <span>AlamatAI</span>
+          <span>ALAMAT AI</span>
         </Link>
         <nav className={open ? 'nav-links nav-links--open' : 'nav-links'} aria-label="Navigasi utama">
           {navItems.map((item) => (
@@ -47,4 +45,3 @@ export function SiteHeader() {
     </header>
   )
 }
-
