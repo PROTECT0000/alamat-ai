@@ -15,7 +15,7 @@
     "LLM_MAX_OUTPUT_TOKENS": "800",
     "LLM_RESPONSE_FORMAT": "prompt",
     "FUZZY_THRESHOLD": "0.82",
-    "CORS_ORIGINS": "http://localhost:5173",
+    "CORS_ORIGINS": "*",
     "SERVICE_VERSION": "0.2.0"
   },
   "secrets": {
