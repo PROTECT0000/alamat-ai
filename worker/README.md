@@ -6,7 +6,9 @@ endpoint for extraction and a D1 binding for deterministic region validation.
 
 ## Configuration
 
-Non-secret values are declared in `wrangler.jsonc`:
+Production runtime variables are configured in the Cloudflare dashboard. The
+Worker sets `keep_vars` in `wrangler.jsonc` and deliberately does not declare a
+`vars` block, so code deployments do not replace dashboard-managed values:
 
 - `LLM_BASE_URL` — provider base URL ending at `/v1`.
 - `LLM_MODEL` — provider-specific model name.

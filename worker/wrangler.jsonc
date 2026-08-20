@@ -3,20 +3,11 @@
   "name": "alamatai-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-20",
+  "keep_vars": true,
   "workers_dev": true,
   "upload_source_maps": true,
   "observability": {
     "enabled": true
-  },
-  "vars": {
-    "LLM_BASE_URL": "https://api.openai.com/v1",
-    "LLM_MODEL": "replace-me",
-    "LLM_TIMEOUT_MS": "20000",
-    "LLM_MAX_OUTPUT_TOKENS": "800",
-    "LLM_RESPONSE_FORMAT": "prompt",
-    "FUZZY_THRESHOLD": "0.82",
-    "CORS_ORIGINS": "*",
-    "SERVICE_VERSION": "0.2.0"
   },
   "secrets": {
     "required": ["APP_API_KEY"]

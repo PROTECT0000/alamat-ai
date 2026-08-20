@@ -110,7 +110,7 @@ describe('AlamatAI Worker', () => {
 
 async function dispatch(path: string, init?: RequestInit<IncomingRequestCfProperties>): Promise<Response> {
   const context = createExecutionContext()
-  const response = await worker.fetch(new IncomingRequest(`https://alamatai.test${path}`, init), env, context)
+  const response = await worker.fetch(new IncomingRequest(`https://alamatai.test${path}`, init), env as WorkerEnv, context)
   await waitOnExecutionContext(context)
   return response
 }
