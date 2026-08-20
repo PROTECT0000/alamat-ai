@@ -12,8 +12,8 @@
     "generate:api": "openapi-typescript ../api/openapi.yaml -o src/types/api.generated.ts && cp ../api/openapi.yaml public/openapi.yaml"
   },
   "dependencies": {
-    "@fontsource/inter": "5.3.0",
     "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/roboto": "5.3.0",
     "axios": "1.19.0",
     "lucide-react": "1.32.0",
     "react": "19.2.8",

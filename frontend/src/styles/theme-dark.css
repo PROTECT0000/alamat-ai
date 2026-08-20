@@ -1,21 +1,23 @@
 /* Permanent dark theme. Component geometry remains defined in the source stylesheets. */
 :root {
   color-scheme: dark;
-  --black: #020307;
-  --ink: #f4f7fb;
-  --body: #abb4c0;
-  --muted: #7f8a98;
+  --black: #080604;
+  --ink: #fff7ed;
+  --body: #c9b8aa;
+  --muted: #9f8c7d;
   --line: rgb(255 255 255 / 8%);
   --line-strong: rgb(255 255 255 / 15%);
-  --canvas: #080a0f;
-  --canvas-soft: #0c0f16;
-  --surface-card: #11151d;
-  --surface-strong: #181e28;
-  --dark: #05070b;
-  --dark-raised: #161c26;
-  --link: #6ab8ff;
-  --sky-light: #17344c;
-  --sky-mid: #24577b;
+  --canvas: #0c0907;
+  --canvas-soft: #120d0a;
+  --surface-card: #17100c;
+  --surface-strong: #24170f;
+  --dark: #080604;
+  --dark-raised: #21140c;
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --accent-soft: #431407;
+  --accent-mid: #fb923c;
+  --link: #fb923c;
   --success: #59d98b;
   --success-soft: #10251a;
   --warning: #f1c36f;
@@ -25,36 +27,31 @@
   --shadow-soft: 0 18px 44px rgb(0 0 0 / 38%);
 }
 
-::selection { background: rgb(106 184 255 / 28%); color: white; }
+::selection { background: rgb(249 115 22 / 32%); color: white; }
 
 /* Shared chrome and controls. */
-.site-header { background: rgb(8 10 15 / 88%); }
-.brand-mark { background: var(--ink); color: var(--canvas); }
-.nav-link { color: #b2bbc7; }
+.site-header { background: rgb(12 9 7 / 90%); }
+.nav-link { color: #c8b8ab; }
 .menu-button,
 .button--secondary { background: var(--surface-card); }
 .button--primary,
-.button--dark-small { background: var(--ink); color: var(--canvas); }
+.button--dark-small { background: var(--accent); color: white; }
 .button--primary:hover:not(:disabled),
-.button--dark-small:hover:not(:disabled) { background: white; }
+.button--dark-small:hover:not(:disabled) { background: var(--accent-hover); }
 .button--ghost { color: var(--body); }
 .button:focus-visible,
 button:focus-visible,
 a:focus-visible,
 textarea:focus-visible,
-input:focus-visible { outline-color: rgb(106 184 255 / 42%); }
-.eyebrow { background: rgb(17 21 29 / 72%); border-color: rgb(255 255 255 / 12%); }
-.section-kicker,
-.result-kicker,
-.step-label { color: #8e99a7; }
+input:focus-visible { outline-color: rgb(249 115 22 / 46%); }
 
 /* Landing page and product mockup. */
 .hero-band { background: var(--canvas); }
 .hero-wash {
   background: radial-gradient(
     ellipse 58% 68% at 50% 35%,
-    rgb(36 87 123 / 72%) 0%,
-    rgb(23 52 76 / 48%) 42%,
+    rgb(194 65 12 / 58%) 0%,
+    rgb(124 45 18 / 40%) 42%,
     rgb(8 10 15 / 0%) 78%
   );
 }
@@ -62,26 +59,26 @@ input:focus-visible { outline-color: rgb(106 184 255 / 42%); }
 .preview-window {
   background: var(--surface-card);
   border-color: rgb(255 255 255 / 17%);
-  box-shadow: 0 32px 90px rgb(0 0 0 / 48%), 0 0 48px rgb(44 114 166 / 10%);
+  box-shadow: 0 32px 90px rgb(0 0 0 / 48%), 0 0 48px rgb(234 88 12 / 13%);
 }
-.preview-toolbar { background: #0d1118; }
-.window-dots span { background: #343c48; }
-.preview-url,
-.preview-label { color: var(--muted); }
+.preview-toolbar { background: #120d0a; }
+.window-dots span { background: #4a3428; }
+.preview-url { color: var(--muted); }
+.preview-label { color: var(--body); }
 .preview-body { background: var(--canvas-soft); }
-.preview-input-panel { background: #0b0e14; }
+.preview-input-panel { background: #100b08; }
 .preview-input-panel p { background: var(--canvas); }
-.preview-button { background: var(--ink); color: var(--canvas); }
+.preview-button { background: var(--accent); color: white; }
 .preview-fields > div { background: var(--surface-card); }
 .preview-clarification { border: 1px solid var(--line-strong); }
-.preview-phone { border-color: #020307; box-shadow: 0 28px 58px rgb(0 0 0 / 48%); }
-.phone-line { background: #29313d; }
+.preview-phone { border-color: #080604; box-shadow: 0 28px 58px rgb(0 0 0 / 48%); }
+.phone-line { background: #3b281e; }
 .section--soft { background: var(--canvas-soft); }
 .feature-card,
 .workflow-steps article { background: var(--surface-card); }
 .feature-card--dark {
-  background: linear-gradient(145deg, #111a26, var(--dark));
-  border-color: rgb(106 184 255 / 18%);
+  background: linear-gradient(145deg, #25150c, var(--dark));
+  border-color: rgb(251 146 60 / 22%);
 }
 .feature-card--dark p { color: var(--body); }
 .feature-index { color: var(--muted); }
@@ -99,7 +96,7 @@ input:focus-visible { outline-color: rgb(106 184 255 / 42%); }
 .input-card textarea:focus,
 .api-key-panel input:focus { outline-color: var(--link); border-color: var(--link); }
 .sample-block button { background: var(--surface-strong); color: var(--body); }
-.sample-block button:hover { border-color: #596575; }
+.sample-block button:hover { border-color: #6b4b3b; }
 .key-notice { border-color: rgb(241 195 111 / 27%); }
 .api-key-panel { background: var(--canvas-soft); }
 .error-banner { border-color: rgb(255 140 148 / 28%); }
@@ -116,18 +113,17 @@ input:focus-visible { outline-color: rgb(106 184 255 / 42%); }
 .loading-heading span,
 .loading-grid span,
 .loading-wide {
-  background: linear-gradient(90deg, #171c25 25%, #222a36 50%, #171c25 75%);
+  background: linear-gradient(90deg, #21150f 25%, #302017 50%, #21150f 75%);
   background-size: 200% 100%;
 }
 
 /* About page, footer, and responsive navigation. */
-.section--dark { background: #05070b; }
-.dark-kicker,
-.dark-points svg { color: #82c5ff; }
+.section--dark { background: #080604; }
+.dark-points svg { color: var(--accent-mid); }
 .dark-points p { color: var(--body); }
 .data-card { background: var(--surface-card); }
 .site-footer { background: var(--canvas-soft); }
 .footer-grid > div:not(.footer-brand) a { color: var(--body); }
 .nav-links { background: var(--surface-card); }
 
-* { scrollbar-color: #343d4a var(--canvas); }
+* { scrollbar-color: #4b3428 var(--canvas); }

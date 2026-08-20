@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { BrandMark } from './BrandMark'
 
 export function SiteFooter() {
   return (
@@ -7,8 +6,7 @@ export function SiteFooter() {
       <div className="container footer-grid">
         <div className="footer-brand">
           <Link className="brand" to="/">
-            <BrandMark />
-            <span>AlamatAI</span>
+            <span>ALAMAT AI</span>
           </Link>
           <p>Lapisan kecerdasan alamat untuk pengiriman Indonesia yang lebih pasti.</p>
         </div>

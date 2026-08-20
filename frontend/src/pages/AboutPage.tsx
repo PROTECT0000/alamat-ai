@@ -6,7 +6,6 @@ export function AboutPage() {
     <div className="about-page">
       <section className="about-hero">
         <div className="container narrow-container">
-          <span className="section-kicker">Tentang AlamatAI</span>
           <h1>Memahami bahasa manusia, memvalidasi dengan aturan yang bisa diperiksa.</h1>
           <p>AlamatAI memisahkan ekstraksi berbasis LLM dari keputusan administratif yang deterministik.</p>
         </div>
@@ -15,7 +14,6 @@ export function AboutPage() {
       <section className="section">
         <div className="container architecture-grid">
           <div className="architecture-copy">
-            <span className="section-kicker">Arsitektur</span>
             <h2>Satu pipeline, batas tanggung jawab yang tegas.</h2>
             <p>Model tidak diberi wewenang untuk mengarang kode, menyatakan confidence, atau memutuskan hierarchy.</p>
           </div>
@@ -30,7 +28,7 @@ export function AboutPage() {
 
       <section className="section section--dark" id="privacy">
         <div className="container dark-section-grid">
-          <div><span className="dark-kicker">Privasi</span><h2>PII diperlakukan sebagai data sensitif, bukan telemetry.</h2></div>
+          <div><h2>PII diperlakukan sebagai data sensitif, bukan telemetry.</h2></div>
           <div className="dark-points">
             <article><EyeOff size={20} /><div><h3>Tidak masuk log</h3><p>Alamat, penerima, kontak, API key, dan raw model response dikeluarkan dari structured logs.</p></div></article>
             <article><ShieldCheck size={20} /><div><h3>Tidak disimpan</h3><p>Worker tidak memiliki database transaksi atau history alamat.</p></div></article>
@@ -41,7 +39,7 @@ export function AboutPage() {
 
       <section className="section" id="data">
         <div className="container data-section">
-          <div className="data-copy"><span className="section-kicker">Provenance data</span><h2>91.599 wilayah, sumbernya disebut sesuai perannya.</h2><p>Snapshot machine-readable dipin, diberi checksum, dan diverifikasi sebelum diimpor ke Cloudflare D1.</p></div>
+          <div className="data-copy"><h2>91.599 wilayah, sumbernya disebut sesuai perannya.</h2><p>Snapshot machine-readable dipin, diberi checksum, dan diverifikasi sebelum diimpor ke Cloudflare D1.</p></div>
           <div className="data-card">
             <div><span>Official benchmark</span><strong>Kepmendagri</strong><small>Dokumen pembanding jumlah</small></div>
             <div><span>Machine-readable primary</span><strong>cahyadsn/wilayah</strong><small>MIT · pinned commit</small></div>
@@ -51,7 +49,7 @@ export function AboutPage() {
       </section>
 
       <section className="cta-band">
-        <div className="container cta-inner"><span className="section-kicker">Lihat pipeline bekerja</span><h2>Uji dengan alamat yang benar-benar kamu terima.</h2><Link className="button button--primary button--large" to="/parse">Buka parser <ArrowRight size={16} /></Link></div>
+        <div className="container cta-inner"><h2>Uji dengan alamat yang benar-benar kamu terima.</h2><Link className="button button--primary button--large" to="/parse">Buka parser <ArrowRight size={16} /></Link></div>
       </section>
     </div>
   )

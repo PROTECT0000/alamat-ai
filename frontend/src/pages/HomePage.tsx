@@ -1,4 +1,4 @@
-import { ArrowRight, BadgeCheck, Braces, Database, MessageSquareText, ScanText, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Braces, Database, MessageSquareText, ScanText, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductPreview } from '../components/ProductPreview'
 
@@ -26,7 +26,6 @@ export function HomePage() {
       <section className="hero-band">
         <div className="hero-wash" aria-hidden="true" />
         <div className="container hero-copy">
-          <div className="eyebrow"><BadgeCheck size={14} /> Address intelligence untuk Indonesia</div>
           <h1>Alamat lebih jelas.<br />Pengiriman lebih pasti.</h1>
           <p>
             AlamatAI mengubah alamat informal menjadi data terstruktur, memeriksa hierarchy wilayah,
@@ -47,7 +46,6 @@ export function HomePage() {
       <section className="section">
         <div className="container">
           <div className="section-heading">
-            <span className="section-kicker">Satu input, jawaban yang bisa ditindaklanjuti</span>
             <h2>Bukan sekadar memecah teks.</h2>
             <p>Setiap lapisan punya peran yang jelas, sehingga hasilnya mudah diperiksa dan tidak menutupi ambiguitas.</p>
           </div>
@@ -67,7 +65,6 @@ export function HomePage() {
       <section className="section section--soft">
         <div className="container workflow-layout">
           <div className="workflow-copy">
-            <span className="section-kicker">Dari chat ke keputusan</span>
             <h2>Alur kecil yang menjaga paket tetap di jalur.</h2>
             <p>LLM dipakai untuk memahami bahasa. Cloudflare Worker dan gazetteer D1 tetap memegang keputusan validasi.</p>
             <Link className="text-link" to="/about">Pelajari arsitektur <ArrowRight size={15} /></Link>
@@ -89,7 +86,6 @@ export function HomePage() {
       <section className="section">
         <div className="container trust-grid">
           <div className="trust-copy">
-            <span className="section-kicker">Dibangun untuk bisa diperiksa</span>
             <h2>Jujur ketika tahu.<br />Jelas ketika ragu.</h2>
           </div>
           <div className="trust-points">
@@ -102,7 +98,6 @@ export function HomePage() {
 
       <section className="cta-band">
         <div className="container cta-inner">
-          <span className="section-kicker">Coba dengan alamatmu sendiri</span>
           <h2>Dari teks berantakan menjadi langkah berikutnya.</h2>
           <Link className="button button--primary button--large" to="/parse">Buka parser <ArrowRight size={16} /></Link>
         </div>

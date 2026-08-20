@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, ChevronRight, Clipboard, ClipboardCheck, Code2, MapPinCheck, MessageSquareText } from 'lucide-react'
+import { AlertTriangle, Check, ChevronRight, Clipboard, ClipboardCheck, Code2, MessageSquareText } from 'lucide-react'
 import { useState } from 'react'
 import type { AdminMatch, Issue, ParseResponse, ParsedAddress, ValidationStatus } from '../types/api'
 
@@ -33,7 +33,6 @@ export function ResultView({ result }: { result: ParseResponse }) {
     <div className="result-stack">
       <section className="result-card result-summary">
         <div>
-          <span className="result-kicker"><MapPinCheck size={15} /> Hasil analisis</span>
           <h2>{statusTitle(result.validation.status)}</h2>
         </div>
         <StatusBadge status={result.validation.status} />
@@ -58,7 +57,7 @@ export function ResultView({ result }: { result: ParseResponse }) {
       )}
 
       <section className="result-card">
-        <div className="card-heading"><div><span className="result-kicker">Data terstruktur</span><h3>Field alamat</h3></div></div>
+        <div className="card-heading"><div><h3>Field alamat</h3></div></div>
         <div className="field-grid">
           {addressFields.map(({ key, label }) => (
             <div className={result.address[key] ? 'field-item' : 'field-item field-item--empty'} key={key}>
@@ -70,7 +69,7 @@ export function ResultView({ result }: { result: ParseResponse }) {
       </section>
 
       <section className="result-card">
-        <div className="card-heading"><div><span className="result-kicker">Gazetteer</span><h3>Hierarchy administratif</h3></div></div>
+        <div className="card-heading"><div><h3>Hierarchy administratif</h3></div></div>
         <div className="admin-list">
           {adminLevels.map(({ key, label }, index) => (
             <AdminRow label={label} match={result.validation.admin[key]} last={index === adminLevels.length - 1} key={key} />
@@ -80,7 +79,7 @@ export function ResultView({ result }: { result: ParseResponse }) {
 
       {result.issues.length > 0 && (
         <section className="result-card">
-          <div className="card-heading"><div><span className="result-kicker">Perlu diperhatikan</span><h3>{result.issues.length} temuan</h3></div></div>
+          <div className="card-heading"><div><h3>{result.issues.length} temuan</h3></div></div>
           <div className="issue-list">
             {result.issues.map((issue, index) => <IssueRow issue={issue} key={`${issue.code}-${issue.field}-${index}`} />)}
           </div>
@@ -131,4 +130,3 @@ function statusTitle(status: ValidationStatus) {
 function humanizeCode(code: string) {
   return code.toLowerCase().split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
 }
-
