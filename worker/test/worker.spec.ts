@@ -9,6 +9,7 @@ const IncomingRequest = Request<unknown, IncomingRequestCfProperties>
 
 const extraction = {
   is_address: true,
+  inferred_fields: [],
   jalan: 'Jalan Mawar',
   nomor: '12',
   rt: null,

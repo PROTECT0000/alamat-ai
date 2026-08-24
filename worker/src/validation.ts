@@ -9,6 +9,7 @@ import type {
   ExtractedAddress,
   Issue,
   IssueCode,
+  InferenceField,
   Level,
   LookupMatch,
   MatchType,
@@ -62,6 +63,7 @@ export class Validator {
     const unresolved = new Map<Level, Unresolved>()
     const resolved = new Map<Level, Region>()
     const issues: Issue[] = []
+    const inferredFields = new Set<InferenceField>(extracted.inferred_fields)
 
     const postal = await this.repository.lookupPostal({
       code: address.kode_pos,
@@ -70,7 +72,7 @@ export class Validator {
       regency: address.kabupaten_kota,
       province: address.provinsi,
     })
-    if (!postal.truncated) enrichAddressFromPostal(address, postal.records)
+    if (!postal.truncated) enrichAddressFromPostal(address, postal.records, inferredFields)
 
     inputs.set('province', address.provinsi)
     inputs.set('city', address.kabupaten_kota)
@@ -87,7 +89,13 @@ export class Validator {
         const fuzzy = await this.fuzzyMatches(level, input, resolved)
         if (fuzzy.length === 1) {
           resolved.set(level, fuzzy[0].region)
-          admin[fieldByLevel[level]] = adminFromRegion(input, fuzzy[0].region, 'fuzzy', fuzzy[0].score)
+          const field = fieldByLevel[level]
+          admin[field] = adminFromRegion(
+            input,
+            fuzzy[0].region,
+            inferredFields.has(field) ? 'inferred' : 'fuzzy',
+            inferredFields.has(field) ? inferredScore(fuzzy[0].score) : fuzzy[0].score,
+          )
         } else {
           unresolved.set(level, {
             input,
@@ -99,8 +107,14 @@ export class Validator {
       }
       if (matches.length === 1) {
         const match = matches[0]
+        const field = fieldByLevel[level]
         resolved.set(level, match.region)
-        admin[fieldByLevel[level]] = adminFromRegion(input, match.region, match.alias ? 'alias' : 'exact', 1)
+        admin[field] = adminFromRegion(
+          input,
+          match.region,
+          inferredFields.has(field) ? 'inferred' : match.alias ? 'alias' : 'exact',
+          inferredFields.has(field) ? inferredScore(1) : 1,
+        )
         continue
       }
       unresolved.set(level, { input, candidates: matches, unknown: false })
@@ -112,7 +126,13 @@ export class Validator {
       const inferred = resolved.get(level)
       if (inferred && pending.candidates.some((candidate) => candidate.region.code === inferred.code)) {
         const candidate = pending.candidates.find((item) => item.region.code === inferred.code)
-        admin[fieldByLevel[level]] = adminFromRegion(pending.input, inferred, candidate?.alias ? 'alias' : 'exact', 1)
+        const field = fieldByLevel[level]
+        admin[field] = adminFromRegion(
+          pending.input,
+          inferred,
+          inferredFields.has(field) ? 'inferred' : candidate?.alias ? 'alias' : 'exact',
+          inferredFields.has(field) ? inferredScore(1) : 1,
+        )
         continue
       }
       const field = fieldByLevel[level]
@@ -130,7 +150,7 @@ export class Validator {
     }
 
     addMissingIssues(address, admin, issues)
-    await inferPostalCode(this.repository, address, resolved)
+    await inferPostalCode(this.repository, address, resolved, inferredFields)
     await addPostalIssue(this.repository, address, resolved, issues)
     const needsClarification = issues.some((item) => !['POSTAL_CODE_MISMATCH', 'POSTAL_CODE_UNKNOWN'].includes(item.code))
     return { address, status: needsClarification ? 'needs_clarification' : 'valid', admin, issues }
@@ -163,23 +183,40 @@ export class Validator {
   }
 }
 
-async function inferPostalCode(repository: Gazetteer, address: Address, resolved: Map<Level, Region>): Promise<void> {
+async function inferPostalCode(
+  repository: Gazetteer,
+  address: Address,
+  resolved: Map<Level, Region>,
+  inferredFields: Set<InferenceField>,
+): Promise<void> {
   if (address.kode_pos || !resolved.has('village')) return
   const codes = await repository.postalCodes(resolved.get('village')!.code)
-  if (codes.length === 1) address.kode_pos = codes[0]
+  if (codes.length === 1) {
+    address.kode_pos = codes[0]
+    inferredFields.add('kode_pos')
+  }
 }
 
-function enrichAddressFromPostal(address: Address, records: PostalRecord[]): void {
+function enrichAddressFromPostal(address: Address, records: PostalRecord[], inferredFields: Set<InferenceField>): void {
   if (records.length === 0) return
   const common = <K extends keyof PostalRecord>(field: K): PostalRecord[K] | null => {
     const first = records[0][field]
     return records.every((record) => record[field] === first) ? first : null
   }
-  address.kode_pos ??= common('code')
-  address.desa_kelurahan ??= common('village')
-  address.kecamatan ??= common('district')
-  address.kabupaten_kota ??= common('regency')
-  address.provinsi ??= common('province')
+  const assign = (field: InferenceField, value: string | null): void => {
+    if (address[field] !== null || value === null) return
+    address[field] = value
+    inferredFields.add(field)
+  }
+  assign('kode_pos', common('code'))
+  assign('desa_kelurahan', common('village'))
+  assign('kecamatan', common('district'))
+  assign('kabupaten_kota', common('regency'))
+  assign('provinsi', common('province'))
+}
+
+function inferredScore(score: number): number {
+  return Math.round(Math.min(score, 0.5) * 1000) / 1000
 }
 
 async function inferCommonAncestors(

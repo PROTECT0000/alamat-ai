@@ -1,4 +1,4 @@
-import { addressFieldNames, type Address, type ExtractedAddress } from './types'
+import { addressFieldNames, inferenceFieldNames, type Address, type ExtractedAddress, type InferenceField } from './types'
 
 const limits: Record<keyof Address, number> = {
   jalan: 256,
@@ -28,14 +28,20 @@ export function decodeExtraction(content: string): ExtractedAddress {
   }
   if (!isPlainObject(value)) throw new Error('model output must be a JSON object')
 
-  const expected = new Set(['is_address', ...addressFieldNames])
+  const expected = new Set(['is_address', 'inferred_fields', ...addressFieldNames])
   const keys = Object.keys(value)
   if (keys.length !== expected.size || keys.some((key) => !expected.has(key))) {
     throw new Error('model output contains missing or unknown fields')
   }
   if (typeof value.is_address !== 'boolean') throw new Error('is_address must be a boolean')
+  if (!Array.isArray(value.inferred_fields)
+    || value.inferred_fields.length > inferenceFieldNames.length
+    || value.inferred_fields.some((field) => typeof field !== 'string' || !inferenceFieldNames.includes(field as InferenceField))
+    || new Set(value.inferred_fields).size !== value.inferred_fields.length) {
+    throw new Error('inferred_fields must contain unique inferable field names')
+  }
 
-  const result = { is_address: value.is_address } as ExtractedAddress
+  const result = { is_address: value.is_address, inferred_fields: value.inferred_fields as InferenceField[] } as ExtractedAddress
   for (const field of addressFieldNames) {
     const raw = value[field]
     if (raw !== null && typeof raw !== 'string') throw new Error(`${field} must be a string or null`)

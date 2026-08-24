@@ -71,7 +71,7 @@ export function HomePage() {
           </div>
           <div className="workflow-steps">
             <article>
-              <span>1</span><div><h3>Ekstraksi</h3><p>LLM mengambil nilai yang benar-benar tertulis tanpa mengarang kode wilayah.</p></div>
+              <span>1</span><div><h3>Ekstraksi dan estimasi</h3><p>LLM mengambil nilai tertulis dan mengestimasi wilayah yang hilang dari petunjuk alamat.</p></div>
             </article>
             <article>
               <span>2</span><div><h3>Validasi</h3><p>Gazetteer memeriksa kecocokan nama, parent-child, typo, dan wilayah kembar.</p></div>

@@ -4,6 +4,7 @@ import type { RuntimeConfig } from '../src/types'
 
 const extraction = {
   is_address: true,
+  inferred_fields: [],
   jalan: 'Jalan Mawar',
   nomor: '12',
   rt: null,
@@ -50,6 +51,18 @@ describe('OpenAICompatibleClient', () => {
     })
     expect(body).not.toHaveProperty('temperature')
     expect(body).not.toHaveProperty('max_tokens')
+    expect(body).toHaveProperty('messages.0.content', expect.stringContaining('estimasi paling mungkin'))
+  })
+
+  it('includes inference provenance in strict JSON schema mode', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
+    await new OpenAICompatibleClient({ ...config, llmResponseFormat: 'json_schema' }).extract('Jalan Mawar 12')
+
+    const body = JSON.parse(String(spy.mock.calls[0]?.[1]?.body))
+    expect(body.response_format.json_schema.schema.required).toContain('inferred_fields')
+    expect(body.response_format.json_schema.schema.properties.inferred_fields.items.enum).toEqual([
+      'desa_kelurahan', 'kecamatan', 'kabupaten_kota', 'provinsi', 'kode_pos',
+    ])
   })
 
   it('classifies provider rate limits without reading the body', async () => {

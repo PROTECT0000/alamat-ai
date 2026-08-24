@@ -71,6 +71,15 @@ describe('Validator', () => {
     expect(result.admin.provinsi).toMatchObject({ code: '32', match: 'inferred' })
   })
 
+  it('marks an AI-estimated administrative field as inferred', async () => {
+    const result = await validator.validate(address({
+      desa_kelurahan: 'Sukamaju',
+      inferred_fields: ['desa_kelurahan'],
+    }))
+
+    expect(result.admin.desa_kelurahan).toMatchObject({ code: '32.76.01.1001', match: 'inferred', score: 0.5 })
+  })
+
   it('infers a shared province from ambiguous city candidates', async () => {
     const result = await validator.validate(address({ kabupaten_kota: 'Bekasi' }))
 
@@ -131,6 +140,7 @@ describe('Validator', () => {
 function address(overrides: Partial<ExtractedAddress>): ExtractedAddress {
   return {
     is_address: true,
+    inferred_fields: [],
     jalan: 'Jalan Mawar',
     nomor: '12',
     rt: null,

@@ -15,10 +15,10 @@ export function AboutPage() {
         <div className="container architecture-grid">
           <div className="architecture-copy">
             <h2>Satu pipeline, batas tanggung jawab yang tegas.</h2>
-            <p>Model tidak diberi wewenang untuk mengarang kode, menyatakan confidence, atau memutuskan hierarchy.</p>
+            <p>Model boleh mengusulkan estimasi wilayah, tetapi gazetteer dan data kode pos tetap memeriksa hierarchy sebelum hasil digunakan.</p>
           </div>
           <div className="architecture-flow">
-            <article><span><Braces size={19} /></span><div><small>01</small><h3>OpenAI-compatible extraction</h3><p>Mengambil 15 field persis dari teks pengguna.</p></div></article>
+            <article><span><Braces size={19} /></span><div><small>01</small><h3>OpenAI-compatible reasoning</h3><p>Mengambil field eksplisit dan memperkirakan wilayah yang belum disebutkan.</p></div></article>
             <article><span><Database size={19} /></span><div><small>02</small><h3>Gazetteer resolution</h3><p>Exact, alias, fuzzy, dan parent-child validation.</p></div></article>
             <article><span><Network size={19} /></span><div><small>03</small><h3>Issue classification</h3><p>Membedakan data hilang, ambigu, salah hierarchy, dan non-address.</p></div></article>
             <article><span><FileCheck2 size={19} /></span><div><small>04</small><h3>Clarification template</h3><p>Menyusun maksimal dua pertanyaan Bahasa Indonesia.</p></div></article>

@@ -4,12 +4,15 @@ export const addressFieldNames = [
 ] as const
 
 export type AddressField = (typeof addressFieldNames)[number]
+export const inferenceFieldNames = ['desa_kelurahan', 'kecamatan', 'kabupaten_kota', 'provinsi', 'kode_pos'] as const
+export type InferenceField = (typeof inferenceFieldNames)[number]
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 export type Address = Record<AddressField, string | null>
 
 export interface ExtractedAddress extends Address {
   is_address: boolean
+  inferred_fields: InferenceField[]
 }
 
 export type Level = 'province' | 'city' | 'district' | 'village'
