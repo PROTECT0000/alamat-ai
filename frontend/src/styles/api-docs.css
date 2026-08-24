@@ -1,0 +1,43 @@
+/* API reference layout, schemas, request examples, and response states. */
+.api-docs-page { min-height: 100vh; background: var(--canvas); }
+.api-docs-hero { padding: 88px 0 72px; border-bottom: 1px solid var(--line); background: var(--canvas-soft); }
+.api-docs-mark { width: 46px; height: 46px; display: grid; place-items: center; color: var(--accent-mid); background: var(--surface-strong); }
+.api-docs-hero h1 { margin-top: 28px; font-size: clamp(42px, 6vw, 64px); line-height: 1.04; }
+.api-docs-hero p { max-width: 680px; margin-top: 18px; font-size: 16px; }
+.api-docs-layout { display: grid; grid-template-columns: 190px minmax(0, 780px); gap: 72px; align-items: start; padding-block: 64px 104px; }
+.api-docs-nav { position: sticky; top: 96px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.api-docs-nav strong { margin-bottom: 7px; color: var(--ink); font-size: 13px; }
+.api-docs-nav a { color: var(--muted); font-size: 12px; }
+.api-docs-nav a:hover { color: var(--accent-mid); }
+.api-docs-content { min-width: 0; }
+.docs-section { scroll-margin-top: 92px; padding-bottom: 58px; margin-bottom: 58px; border-bottom: 1px solid var(--line); }
+.docs-section:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: 0; }
+.docs-section-heading { display: grid; grid-template-columns: 38px 1fr; gap: 14px; align-items: start; }
+.docs-section-heading > span { width: 38px; height: 38px; display: grid; place-items: center; color: var(--accent-mid); background: var(--surface-strong); }
+.docs-section-heading h2 { font-size: 25px; }
+.docs-section-heading p { margin-top: 6px; font-size: 13px; }
+.docs-section-heading code { color: var(--ink); font-size: 12px; }
+.endpoint-bar { min-width: 0; margin-top: 24px; display: flex; align-items: stretch; border: 1px solid var(--line-strong); background: var(--surface-card); }
+.endpoint-bar > span { padding: 15px 17px; display: grid; place-items: center; background: var(--accent); color: white; font: 500 11px/1 'JetBrains Mono', monospace; }
+.endpoint-bar code { min-width: 0; overflow-x: auto; padding: 15px 17px; color: var(--ink); font-size: 12px; white-space: nowrap; }
+.docs-callout { margin-top: 24px; padding: 18px; border-left: 3px solid var(--accent); background: var(--surface-card); }
+.docs-callout code { color: var(--accent-mid); font-size: 12px; }
+.docs-callout p { margin-top: 9px; font-size: 12px; }
+.schema-table { margin-top: 24px; border: 1px solid var(--line-strong); }
+.schema-row { display: grid; grid-template-columns: 120px 170px 1fr; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.schema-row:last-child { border-bottom: 0; }
+.schema-row--heading { color: var(--muted); background: var(--surface-card); font-size: 10px; font-weight: 500; }
+.schema-row code { color: var(--accent-mid); }
+.schema-row span:last-child { color: var(--body); }
+.docs-code-block { overflow: hidden; margin-top: 22px; border: 1px solid var(--line-strong); background: #080604; }
+.docs-code-block > div { padding: 11px 15px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.docs-code-block pre { max-height: 520px; overflow: auto; margin: 0; padding: 20px; color: #fed7aa; font-size: 11px; line-height: 1.7; }
+.response-statuses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px; }
+.response-statuses article { padding: 16px; border: 1px solid var(--line); background: var(--surface-card); }
+.response-statuses code { color: var(--accent-mid); font-size: 10px; }
+.response-statuses p { margin-top: 9px; font-size: 11px; line-height: 1.5; }
+.error-status-list { margin-top: 24px; border: 1px solid var(--line-strong); }
+.error-status-list > div { display: grid; grid-template-columns: 160px 1fr; gap: 18px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.error-status-list > div:last-child { border-bottom: 0; }
+.error-status-list code { color: var(--accent-mid); font-size: 11px; }
+.error-status-list span { color: var(--body); font-size: 12px; }

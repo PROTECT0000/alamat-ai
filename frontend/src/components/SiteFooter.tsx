@@ -17,8 +17,7 @@ export function SiteFooter() {
         </div>
         <div>
           <h3>Teknologi</h3>
-          <a href="/api/readyz">Status backend</a>
-          <a href="/openapi.yaml">OpenAPI</a>
+          <Link to="/docs">API Docs</Link>
         </div>
         <div>
           <h3>Prinsip</h3>

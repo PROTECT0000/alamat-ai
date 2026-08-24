@@ -23,4 +23,13 @@ describe('App routes', () => {
     render(<MemoryRouter initialEntries={['/missing']}><App /></MemoryRouter>)
     expect(screen.getByRole('heading', { name: /Alamat halaman ini belum terselesaikan/i })).toBeInTheDocument()
   })
+
+  it('renders the API documentation route', () => {
+    render(<MemoryRouter initialEntries={['/docs']}><App /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: /AlamatAI API Docs/i })).toBeInTheDocument()
+    expect(screen.getByText('https://alamat-ai.akmalf475.workers.dev/v1/parse')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'API Docs' }).at(-1)).toHaveAttribute('href', '/docs')
+    expect(screen.queryByText('Status backend')).not.toBeInTheDocument()
+    expect(screen.queryByText('OpenAPI')).not.toBeInTheDocument()
+  })
 })
