@@ -8,6 +8,8 @@ const repositoryRoot = resolve(workerRoot, '..')
 const sourcePath = resolve(repositoryRoot, 'data/raw/wilayah.sql')
 const checksumPath = resolve(repositoryRoot, 'data/raw/wilayah.sql.sha256')
 const commitPath = resolve(repositoryRoot, 'data/raw/wilayah.COMMIT')
+const postalChecksumPath = resolve(repositoryRoot, 'data/raw/kodepos.json.sha256')
+const postalCommitPath = resolve(repositoryRoot, 'data/raw/kodepos.COMMIT')
 const outputPath = resolve(workerRoot, '.generated/gazetteer-seed.sql')
 const verifyOnly = process.argv.includes('--verify-only')
 
@@ -21,9 +23,22 @@ if (actualChecksum !== expectedChecksum) {
 const regions = parseWilayahSql(source.toString('utf8'))
 verifyRegions(regions)
 const aliases = regions.flatMap((region) => systematicAliases(region).map((alias) => ({ code: region.code, alias })))
+const postalCommit = (await readFile(postalCommitPath, 'utf8')).trim()
+const postalUrl = `https://raw.githubusercontent.com/sooluh/kodepos/${postalCommit}/data/kodepos.json`
+const postalResponse = await fetch(postalUrl)
+if (!postalResponse.ok) throw new Error(`kodepos download failed with HTTP ${postalResponse.status}`)
+const postalSource = Buffer.from(await postalResponse.arrayBuffer())
+const expectedPostalChecksum = (await readFile(postalChecksumPath, 'utf8')).trim().split(/\s+/, 1)[0]
+const actualPostalChecksum = createHash('sha256').update(postalSource).digest('hex')
+if (actualPostalChecksum !== expectedPostalChecksum) {
+  throw new Error(`kodepos.json checksum mismatch: got ${actualPostalChecksum}, expected ${expectedPostalChecksum}`)
+}
+const postalCodes = mapPostalRegions(parsePostalJson(postalSource.toString('utf8')), regions)
 
 const counts = countByLevel(regions)
+const mappedPostalCodes = postalCodes.filter((record) => record.villageRegionCode !== null).length
 console.log(`gazetteer verified: ${counts.province}/${counts.city}/${counts.district}/${counts.village}, zero orphans, zero duplicates, ${aliases.length} aliases`)
+console.log(`postal enrichment verified: ${postalCodes.length} rows, ${new Set(postalCodes.map((record) => record.code)).size} distinct codes, ${mappedPostalCodes} village mappings`)
 
 if (!verifyOnly) {
   const commitHash = (await readFile(commitPath, 'utf8')).trim()
@@ -42,9 +57,30 @@ if (!verifyOnly) {
       aliases.map(({ code, alias }) => [code, alias, 'systematic']),
       'INSERT OR IGNORE',
     ),
+    ...batchedInsert(
+      'postal_codes(code, village, normalized_village, district, normalized_district, regency, normalized_regency, province, normalized_province, latitude, longitude, elevation, timezone, village_region_code, source_role)',
+      postalCodes.map((record) => [
+        record.code,
+        record.village,
+        record.normalizedVillage,
+        record.district,
+        record.normalizedDistrict,
+        record.regency,
+        record.normalizedRegency,
+        record.province,
+        record.normalizedProvince,
+        record.latitude,
+        record.longitude,
+        record.elevation,
+        record.timezone,
+        record.villageRegionCode,
+        'enrichment',
+      ]),
+    ),
     `INSERT INTO source_metadata(id, source_name, source_url, commit_hash, license, regulation_version, source_role, record_count, build_timestamp, notes) VALUES
       (1, 'Kepmendagri', 'https://www.kemendagri.go.id/', 'not-applicable', 'public document', 'Kepmendagri No. 300.2.2-2138 Tahun 2025', 'official_benchmark', ${regions.length}, '2026-02-13T16:45:21Z', 'Official count benchmark; machine-readable rows are from the separately identified source.'),
-      (2, 'cahyadsn/wilayah', 'https://github.com/cahyadsn/wilayah', ${sqlValue(commitHash)}, 'MIT', 'Kepmendagri No. 300.2.2-2138 Tahun 2025', 'machine_readable_primary', ${regions.length}, '2026-02-13T16:45:21Z', 'Community-maintained machine-readable mirror; not described as authoritative.');`,
+      (2, 'cahyadsn/wilayah', 'https://github.com/cahyadsn/wilayah', ${sqlValue(commitHash)}, 'MIT', 'Kepmendagri No. 300.2.2-2138 Tahun 2025', 'machine_readable_primary', ${regions.length}, '2026-02-13T16:45:21Z', 'Community-maintained machine-readable mirror; not described as authoritative.'),
+      (3, 'sooluh/kodepos', 'https://github.com/sooluh/kodepos/raw/refs/heads/main/data/kodepos.json', ${sqlValue(postalCommit)}, 'Apache-2.0', NULL, 'enrichment', ${postalCodes.length}, '2026-08-24T00:00:00Z', 'Pinned postal-code, locality, coordinate, elevation, and timezone enrichment. Postal codes are not unique.');`,
     'PRAGMA optimize;',
     '',
   ]
@@ -72,6 +108,63 @@ function parseWilayahSql(text) {
   }
   if (regions.length === 0) throw new Error('no wilayah rows found')
   return regions
+}
+
+function parsePostalJson(text) {
+  const value = JSON.parse(text)
+  if (!Array.isArray(value) || value.length !== 83761) {
+    throw new Error(`kodepos row count = ${Array.isArray(value) ? value.length : 'not-an-array'}, expected 83761`)
+  }
+  return value.map((row, index) => {
+    if (!row || typeof row !== 'object') throw new Error(`kodepos row ${index} is not an object`)
+    const code = String(row.code)
+    for (const field of ['village', 'district', 'regency', 'province', 'timezone']) {
+      if (typeof row[field] !== 'string' || !row[field].trim()) throw new Error(`kodepos row ${index} has invalid ${field}`)
+    }
+    for (const field of ['latitude', 'longitude', 'elevation']) {
+      if (typeof row[field] !== 'number' || !Number.isFinite(row[field])) throw new Error(`kodepos row ${index} has invalid ${field}`)
+    }
+    if (!/^\d{5}$/.test(code)) throw new Error(`kodepos row ${index} has invalid code`)
+    if (!['WIB', 'WITA', 'WIT'].includes(row.timezone)) throw new Error(`kodepos row ${index} has invalid timezone`)
+    return {
+      code,
+      village: row.village.trim(),
+      normalizedVillage: normalizeName(row.village),
+      district: row.district.trim(),
+      normalizedDistrict: normalizeName(row.district),
+      regency: row.regency.trim(),
+      normalizedRegency: normalizeName(row.regency),
+      province: row.province.trim(),
+      normalizedProvince: normalizeName(row.province),
+      latitude: row.latitude,
+      longitude: row.longitude,
+      elevation: row.elevation,
+      timezone: row.timezone,
+      villageRegionCode: null,
+    }
+  })
+}
+
+function mapPostalRegions(postalCodes, regions) {
+  const byCode = new Map(regions.map((region) => [region.code, region]))
+  const villagesByName = new Map()
+  for (const region of regions) {
+    if (region.level !== 'village') continue
+    const key = comparableName(region.name)
+    villagesByName.set(key, [...(villagesByName.get(key) ?? []), region])
+  }
+  return postalCodes.map((postal) => {
+    const matches = (villagesByName.get(comparableName(postal.village)) ?? []).filter((village) => {
+      const district = byCode.get(village.parentCode)
+      const city = district ? byCode.get(district.parentCode) : null
+      const province = city ? byCode.get(city.parentCode) : null
+      return district && city && province
+        && comparableName(district.name) === comparableName(postal.district)
+        && comparableName(city.name) === comparableName(postal.regency)
+        && comparableName(province.name) === comparableName(postal.province)
+    })
+    return { ...postal, villageRegionCode: matches.length === 1 ? matches[0].code : null }
+  })
 }
 
 function parseSqlString(source, start) {
@@ -148,6 +241,10 @@ function systematicAliases(region) {
 
 function normalizeName(value) {
   return value.trim().toLocaleLowerCase('id-ID').replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+}
+
+function comparableName(value) {
+  return normalizeName(value).replace(/^(provinsi|kabupaten|kota|kecamatan|kelurahan|desa)\s+/, '')
 }
 
 function batchedInsert(table, rows, verb = 'INSERT') {

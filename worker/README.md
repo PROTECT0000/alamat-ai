@@ -47,9 +47,16 @@ npm run db:seed:remote
 ```
 
 The seed is generated into ignored `.generated/` storage. The generator checks
-the upstream SHA-256, exact level counts, duplicates, and parent references
-before producing D1-compatible SQL. Re-running the import replaces only the
-gazetteer tables and does not touch request data because the Worker stores none.
+the upstream SHA-256, exact level counts, duplicates, and parent references,
+then downloads and verifies the pinned `sooluh/kodepos` enrichment before
+producing D1-compatible SQL. Seed generation therefore requires network access.
+Re-running the import replaces only the gazetteer tables and does not touch
+request data because the Worker stores none.
+
+Postal codes are not unique. D1 stores one row per locality, including village,
+district, regency, province, coordinates, elevation, timezone, and an optional
+mapped village-region code. During parsing, the validator queries this table and
+fills only values that are common to every matching row.
 
 ## Development and verification
 

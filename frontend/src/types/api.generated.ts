@@ -73,6 +73,7 @@ export interface components {
             kecamatan: string | null;
             kabupaten_kota: string | null;
             provinsi: string | null;
+            /** @description Kode pos eksplisit atau hasil enrichment jika seluruh row lokasi yang cocok memiliki kode yang sama. */
             kode_pos: string | null;
             patokan: string | null;
             penerima: string | null;

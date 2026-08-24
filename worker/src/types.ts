@@ -38,6 +38,32 @@ export interface LookupMatch {
   alias: boolean
 }
 
+export interface PostalRecord {
+  code: string
+  village: string
+  district: string
+  regency: string
+  province: string
+  latitude: number
+  longitude: number
+  elevation: number
+  timezone: 'WIB' | 'WITA' | 'WIT'
+  villageRegionCode: string | null
+}
+
+export interface PostalQuery {
+  code: string | null
+  village: string | null
+  district: string | null
+  regency: string | null
+  province: string | null
+}
+
+export interface PostalLookup {
+  records: PostalRecord[]
+  truncated: boolean
+}
+
 export interface Candidate {
   code: string
   name: string
@@ -66,6 +92,10 @@ export interface ValidationResult {
   status: ValidationStatus
   admin: AdminValidation
   issues: Issue[]
+}
+
+export interface AddressValidationResult extends ValidationResult {
+  address: Address
 }
 
 export interface ParseResponse {

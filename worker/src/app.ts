@@ -1,4 +1,3 @@
-import { publicAddress } from './address'
 import { generateClarification } from './clarification'
 import { ConfigError, configIssues, loadConfig, type ConfigIssue } from './config'
 import { D1Gazetteer } from './gazetteer'
@@ -137,7 +136,7 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
     const validation = await new Validator(repository, config.fuzzyThreshold).validate(extracted.address)
     const result: ParseResponse = {
       request_id: requestId,
-      address: publicAddress(extracted.address),
+      address: validation.address,
       validation: { status: validation.status, admin: validation.admin },
       issues: validation.issues,
       clarification_message: generateClarification(validation),

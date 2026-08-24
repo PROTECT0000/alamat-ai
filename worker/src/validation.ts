@@ -2,6 +2,7 @@ import { publicAddress, signalCount } from './address'
 import { normalizeName, type Gazetteer } from './gazetteer'
 import type {
   Address,
+  AddressValidationResult,
   AdminMatch,
   AdminValidation,
   Candidate,
@@ -11,8 +12,8 @@ import type {
   Level,
   LookupMatch,
   MatchType,
+  PostalRecord,
   Region,
-  ValidationResult,
 } from './types'
 
 const levels: Level[] = ['province', 'city', 'district', 'village']
@@ -40,7 +41,7 @@ export class Validator {
     private readonly fuzzyThreshold: number,
   ) {}
 
-  async validate(extracted: ExtractedAddress): Promise<ValidationResult> {
+  async validate(extracted: ExtractedAddress): Promise<AddressValidationResult> {
     const address = publicAddress(extracted)
     const inputs = new Map<Level, string | null>([
       ['province', address.provinsi],
@@ -51,6 +52,7 @@ export class Validator {
     const admin = emptyAdmin(inputs)
     if (!extracted.is_address && signalCount(address) === 0) {
       return {
+        address,
         status: 'invalid',
         admin,
         issues: [issue('NON_ADDRESS_INPUT', null, 'error', 'Teks tidak tampak sebagai alamat.')],
@@ -60,6 +62,21 @@ export class Validator {
     const unresolved = new Map<Level, Unresolved>()
     const resolved = new Map<Level, Region>()
     const issues: Issue[] = []
+
+    const postal = await this.repository.lookupPostal({
+      code: address.kode_pos,
+      village: address.desa_kelurahan,
+      district: address.kecamatan,
+      regency: address.kabupaten_kota,
+      province: address.provinsi,
+    })
+    if (!postal.truncated) enrichAddressFromPostal(address, postal.records)
+
+    inputs.set('province', address.provinsi)
+    inputs.set('city', address.kabupaten_kota)
+    inputs.set('district', address.kecamatan)
+    inputs.set('village', address.desa_kelurahan)
+    Object.assign(admin, emptyAdmin(inputs))
 
     for (const level of levels) {
       const input = inputs.get(level)
@@ -89,6 +106,7 @@ export class Validator {
       unresolved.set(level, { input, candidates: matches, unknown: false })
     }
 
+    await inferCommonAncestors(this.repository, unresolved, inputs, resolved, admin)
     await inferAndCheck(this.repository, inputs, resolved, admin, issues)
     for (const [level, pending] of unresolved) {
       const inferred = resolved.get(level)
@@ -112,9 +130,10 @@ export class Validator {
     }
 
     addMissingIssues(address, admin, issues)
+    await inferPostalCode(this.repository, address, resolved)
     await addPostalIssue(this.repository, address, resolved, issues)
     const needsClarification = issues.some((item) => !['POSTAL_CODE_MISMATCH', 'POSTAL_CODE_UNKNOWN'].includes(item.code))
-    return { status: needsClarification ? 'needs_clarification' : 'valid', admin, issues }
+    return { address, status: needsClarification ? 'needs_clarification' : 'valid', admin, issues }
   }
 
   private async fuzzyMatches(level: Level, input: string, resolved: Map<Level, Region>): Promise<FuzzyMatch[]> {
@@ -141,6 +160,45 @@ export class Validator {
       }
     }
     return matches.sort((a, b) => a.region.code.localeCompare(b.region.code)).slice(0, 5)
+  }
+}
+
+async function inferPostalCode(repository: Gazetteer, address: Address, resolved: Map<Level, Region>): Promise<void> {
+  if (address.kode_pos || !resolved.has('village')) return
+  const codes = await repository.postalCodes(resolved.get('village')!.code)
+  if (codes.length === 1) address.kode_pos = codes[0]
+}
+
+function enrichAddressFromPostal(address: Address, records: PostalRecord[]): void {
+  if (records.length === 0) return
+  const common = <K extends keyof PostalRecord>(field: K): PostalRecord[K] | null => {
+    const first = records[0][field]
+    return records.every((record) => record[field] === first) ? first : null
+  }
+  address.kode_pos ??= common('code')
+  address.desa_kelurahan ??= common('village')
+  address.kecamatan ??= common('district')
+  address.kabupaten_kota ??= common('regency')
+  address.provinsi ??= common('province')
+}
+
+async function inferCommonAncestors(
+  repository: Gazetteer,
+  unresolved: Map<Level, Unresolved>,
+  inputs: Map<Level, string | null>,
+  resolved: Map<Level, Region>,
+  admin: AdminValidation,
+): Promise<void> {
+  for (const pending of unresolved.values()) {
+    if (pending.candidates.length < 2) continue
+    const ancestorSets = await Promise.all(pending.candidates.map((candidate) => repository.ancestors(candidate.region.code)))
+    for (const level of levels) {
+      if (resolved.has(level)) continue
+      const candidates = ancestorSets.map((ancestors) => ancestors.find((ancestor) => ancestor.level === level)).filter(Boolean) as Region[]
+      if (candidates.length !== ancestorSets.length || !candidates.every((candidate) => candidate.code === candidates[0].code)) continue
+      resolved.set(level, candidates[0])
+      admin[fieldByLevel[level]] = adminFromRegion(inputs.get(level) ?? null, candidates[0], 'inferred', 1)
+    }
   }
 }
 

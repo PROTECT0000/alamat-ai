@@ -1,4 +1,4 @@
-import type { Level, LookupMatch, Region, SourceMetadata } from './types'
+import type { Level, LookupMatch, PostalLookup, PostalQuery, PostalRecord, Region, SourceMetadata } from './types'
 
 export interface Gazetteer {
   ping(): Promise<void>
@@ -6,6 +6,7 @@ export interface Gazetteer {
   children(parentCode: string, level: Level): Promise<Region[]>
   listLevel(level: Level): Promise<Region[]>
   ancestors(code: string): Promise<Region[]>
+  lookupPostal(query: PostalQuery): Promise<PostalLookup>
   postalCodes(regionCode: string): Promise<string[]>
   version(): Promise<string>
   sources(): Promise<SourceMetadata[]>
@@ -22,6 +23,19 @@ interface RegionRow {
 
 interface LookupRow extends RegionRow {
   alias: number
+}
+
+interface PostalRow {
+  code: string
+  village: string
+  district: string
+  regency: string
+  province: string
+  latitude: number
+  longitude: number
+  elevation: number
+  timezone: PostalRecord['timezone']
+  village_region_code: string | null
 }
 
 export class D1Gazetteer implements Gazetteer {
@@ -82,9 +96,56 @@ export class D1Gazetteer implements Gazetteer {
 
   async postalCodes(regionCode: string): Promise<string[]> {
     const result = await this.db.prepare(
-      'SELECT postal_code FROM postal_codes WHERE region_code = ? ORDER BY postal_code',
+      'SELECT DISTINCT code AS postal_code FROM postal_codes WHERE village_region_code = ? ORDER BY code',
     ).bind(regionCode).all<{ postal_code: string }>()
     return result.results.map((row) => row.postal_code)
+  }
+
+  async lookupPostal(query: PostalQuery): Promise<PostalLookup> {
+    const filters: string[] = []
+    const values: string[] = []
+    if (query.code) {
+      filters.push('code = ?')
+      values.push(query.code)
+    }
+    if (query.village) {
+      filters.push('normalized_village = ?')
+      values.push(normalizeComparableName(query.village))
+    }
+    if (query.district) {
+      filters.push('normalized_district = ?')
+      values.push(normalizeComparableName(query.district))
+    }
+    if (query.regency) {
+      filters.push('normalized_regency = ?')
+      values.push(normalizeComparableName(query.regency))
+    }
+    if (query.province) {
+      filters.push('normalized_province = ?')
+      values.push(normalizeComparableName(query.province))
+    }
+    if (!query.code && !query.village && !query.district && !query.regency) return { records: [], truncated: false }
+    const result = await this.db.prepare(`
+      SELECT code, village, district, regency, province, latitude, longitude,
+             elevation, timezone, village_region_code
+      FROM postal_codes WHERE ${filters.join(' AND ')}
+      ORDER BY province, regency, district, village, code LIMIT 101
+    `).bind(...values).all<PostalRow>()
+    return {
+      records: result.results.slice(0, 100).map((row) => ({
+        code: row.code,
+        village: row.village,
+        district: row.district,
+        regency: row.regency,
+        province: row.province,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        elevation: row.elevation,
+        timezone: row.timezone,
+        villageRegionCode: row.village_region_code,
+      })),
+      truncated: result.results.length > 100,
+    }
   }
 
   async version(): Promise<string> {
@@ -115,6 +176,10 @@ export function normalizeName(value: string): string {
     .toLocaleLowerCase('id-ID')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
+}
+
+export function normalizeComparableName(value: string): string {
+  return normalizeName(value).replace(/^(provinsi|kabupaten|kota|kecamatan|kelurahan|desa)\s+/, '')
 }
 
 function regionFromRow(row: RegionRow): Region {

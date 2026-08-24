@@ -121,7 +121,11 @@ components:
         kecamatan: { type: string, nullable: true, maxLength: 256 }
         kabupaten_kota: { type: string, nullable: true, maxLength: 256 }
         provinsi: { type: string, nullable: true, maxLength: 256 }
-        kode_pos: { type: string, nullable: true, maxLength: 16 }
+        kode_pos:
+          type: string
+          nullable: true
+          maxLength: 16
+          description: Kode pos eksplisit atau hasil enrichment jika seluruh row lokasi yang cocok memiliki kode yang sama.
         patokan: { type: string, nullable: true, maxLength: 500 }
         penerima: { type: string, nullable: true, maxLength: 256 }
         kontak: { type: string, nullable: true, maxLength: 64 }

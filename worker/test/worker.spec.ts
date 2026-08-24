@@ -29,6 +29,7 @@ const extraction = {
 describe('AlamatAI Worker', () => {
   beforeEach(async () => {
     await env.DB.batch([
+      env.DB.prepare('DELETE FROM postal_codes'),
       env.DB.prepare('DELETE FROM region_aliases'),
       env.DB.prepare('DELETE FROM regions'),
       env.DB.prepare('DELETE FROM source_metadata'),
@@ -36,6 +37,7 @@ describe('AlamatAI Worker', () => {
       env.DB.prepare("INSERT INTO regions VALUES ('32.76', 'city', 'kota', '32', 'Kota Depok', 'kota depok')"),
       env.DB.prepare("INSERT INTO regions VALUES ('32.76.01', 'district', 'kecamatan', '32.76', 'Cilodong', 'cilodong')"),
       env.DB.prepare("INSERT INTO regions VALUES ('32.76.01.1001', 'village', 'kelurahan', '32.76.01', 'Sukamaju', 'sukamaju')"),
+      env.DB.prepare("INSERT INTO postal_codes(code, village, normalized_village, district, normalized_district, regency, normalized_regency, province, normalized_province, latitude, longitude, elevation, timezone, village_region_code) VALUES ('16415', 'Sukamaju', 'sukamaju', 'Cilodong', 'cilodong', 'Depok', 'depok', 'Jawa Barat', 'jawa barat', -6.42, 106.84, 75, 'WIB', '32.76.01.1001')"),
       env.DB.prepare("INSERT INTO source_metadata VALUES (1, 'cahyadsn/wilayah', 'https://github.com/cahyadsn/wilayah', 'fixture-commit', NULL, 'MIT', 'fixture', 'machine_readable_primary', 4, '2026-08-20T00:00:00Z', 'test fixture')"),
     ])
   })
@@ -112,6 +114,7 @@ describe('AlamatAI Worker', () => {
 
     expect(response.status).toBe(200)
     expect(result.validation.status).toBe('valid')
+    expect(result.address.kode_pos).toBe('16415')
     expect(result.validation.admin.desa_kelurahan.code).toBe('32.76.01.1001')
     expect(result.meta).toMatchObject({ model: 'test-model', llm_attempts: 1, gazetteer_version: 'fixture-commit' })
     expect(fetchSpy).toHaveBeenCalledOnce()
