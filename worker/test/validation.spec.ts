@@ -69,6 +69,12 @@ describe('Validator', () => {
     expect(result.admin.kecamatan).toMatchObject({ code: '32.76.01', match: 'inferred' })
     expect(result.admin.kabupaten_kota).toMatchObject({ code: '32.76', match: 'inferred' })
     expect(result.admin.provinsi).toMatchObject({ code: '32', match: 'inferred' })
+    expect(result.address).toMatchObject({
+      desa_kelurahan: 'Sukamaju',
+      kecamatan: 'Cilodong',
+      kabupaten_kota: 'Kota Depok',
+      provinsi: 'Jawa Barat',
+    })
   })
 
   it('marks an AI-estimated administrative field as inferred', async () => {
@@ -85,6 +91,8 @@ describe('Validator', () => {
 
     expect(result.admin.kabupaten_kota.code).toBeNull()
     expect(result.admin.provinsi).toMatchObject({ code: '32', name: 'Jawa Barat', match: 'inferred' })
+    expect(result.address.provinsi).toBe('Jawa Barat')
+    expect(result.address.kabupaten_kota).toBe('Bekasi')
     expect(result.issues).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'AMBIGUOUS_REGION', field: 'kabupaten_kota' })]))
     expect(result.issues).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: 'MISSING_FIELD', field: 'provinsi' })]))
   })

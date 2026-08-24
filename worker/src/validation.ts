@@ -149,6 +149,7 @@ export class Validator {
       }
     }
 
+    enrichAddressFromAdmin(address, admin)
     addMissingIssues(address, admin, issues)
     await inferPostalCode(this.repository, address, resolved, inferredFields)
     await addPostalIssue(this.repository, address, resolved, issues)
@@ -180,6 +181,12 @@ export class Validator {
       }
     }
     return matches.sort((a, b) => a.region.code.localeCompare(b.region.code)).slice(0, 5)
+  }
+}
+
+function enrichAddressFromAdmin(address: Address, admin: AdminValidation): void {
+  for (const field of ['desa_kelurahan', 'kecamatan', 'kabupaten_kota', 'provinsi'] as const) {
+    if (address[field] === null && admin[field].name !== null) address[field] = admin[field].name
   }
 }
 

@@ -2,7 +2,7 @@ import { generateClarification } from './clarification'
 import { ConfigError, configIssues, loadConfig, type ConfigIssue } from './config'
 import { D1Gazetteer } from './gazetteer'
 import { LLMError, OpenAICompatibleClient } from './llm'
-import type { ParseResponse, WorkerEnv } from './types'
+import type { InferenceMode, ParseResponse, WorkerEnv } from './types'
 import { Validator } from './validation'
 
 const maxRequestBody = 16 * 1024
@@ -107,6 +107,7 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
   }
   if (!isParseBody(body)) return errorResponse(400, 'INVALID_REQUEST', 'Request JSON tidak valid.', requestId)
   const text = body.text.trim()
+  const mode = body.mode ?? 'normal'
   if (!text || Array.from(text).length > 2000) {
     return errorResponse(422, 'VALIDATION_ERROR', 'Text wajib berisi 1 sampai 2.000 karakter.', requestId)
   }
@@ -132,7 +133,7 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
     const pipelineStarted = Date.now()
     const repository = new D1Gazetteer(env.DB)
     const gazetteerVersion = await repository.version()
-    const extracted = await new OpenAICompatibleClient(config).extract(text)
+    const extracted = await new OpenAICompatibleClient(config).extract(text, mode)
     const validation = await new Validator(repository, config.fuzzyThreshold).validate(extracted.address)
     const result: ParseResponse = {
       request_id: requestId,
@@ -142,6 +143,7 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
       clarification_message: generateClarification(validation),
       meta: {
         model: extracted.model,
+        inference_mode: mode,
         llm_attempts: extracted.attempts,
         latency_ms: Date.now() - pipelineStarted,
         gazetteer_version: gazetteerVersion,
@@ -205,9 +207,14 @@ async function secureEqual(left: string, right: string): Promise<boolean> {
   return difference === 0 && left.length > 0 && right.length > 0
 }
 
-function isParseBody(value: unknown): value is { text: string } {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    && Object.keys(value).length === 1 && typeof (value as { text?: unknown }).text === 'string'
+function isParseBody(value: unknown): value is { text: string; mode?: InferenceMode } {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  const body = value as { text?: unknown; mode?: unknown }
+  const keys = Object.keys(value)
+  return keys.length >= 1 && keys.length <= 2
+    && keys.every((key) => key === 'text' || key === 'mode')
+    && typeof body.text === 'string'
+    && (body.mode === undefined || body.mode === 'fast' || body.mode === 'normal')
 }
 
 async function readLimitedBody(request: Request, limit: number): Promise<Uint8Array | null> {

@@ -71,6 +71,7 @@
   .field-grid { grid-template-columns: 1fr; }
   .admin-row { grid-template-columns: 26px 1fr; }
   .admin-match { grid-column: 2; text-align: left; margin-top: -18px; }
+  .mode-selector > div { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-brand { grid-column: auto; }
 }

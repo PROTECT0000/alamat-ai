@@ -106,6 +106,12 @@ components:
           type: string
           minLength: 1
           maxLength: 2000
+        mode:
+          $ref: '#/components/schemas/InferenceMode'
+          description: Fast mengurangi reasoning dan output token; normal (default) menggunakan konfigurasi reasoning Worker.
+    InferenceMode:
+      type: string
+      enum: [fast, normal]
     Address:
       type: object
       additionalProperties: false
@@ -192,9 +198,10 @@ components:
     ParseMetadata:
       type: object
       additionalProperties: false
-      required: [model, llm_attempts, latency_ms, gazetteer_version]
+      required: [model, inference_mode, llm_attempts, latency_ms, gazetteer_version]
       properties:
         model: { type: string }
+        inference_mode: { $ref: '#/components/schemas/InferenceMode' }
         llm_attempts: { type: integer, minimum: 1, maximum: 2 }
         latency_ms: { type: integer, format: int64, minimum: 0 }
         gazetteer_version: { type: string }

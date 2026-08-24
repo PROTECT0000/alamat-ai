@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import type { APIErrorResponse, ParseRequest, ParseResponse, ReadinessResponse } from '../types/api'
+import type { APIErrorResponse, InferenceMode, ParseRequest, ParseResponse, ReadinessResponse } from '../types/api'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
@@ -21,9 +21,9 @@ export class ApiClientError extends Error {
   }
 }
 
-export async function parseAddress(text: string, apiKey: string): Promise<ParseResponse> {
+export async function parseAddress(text: string, apiKey: string, mode: InferenceMode): Promise<ParseResponse> {
   try {
-    const payload: ParseRequest = { text }
+    const payload: ParseRequest = { text, mode }
     const response = await api.post<ParseResponse>('/v1/parse', payload, {
       headers: { 'X-API-Key': apiKey },
     })
@@ -69,4 +69,3 @@ export function normalizeApiError(error: unknown): ApiClientError {
     status: axiosError.response.status,
   })
 }
-

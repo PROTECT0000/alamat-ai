@@ -16,6 +16,8 @@ describe('App routes', () => {
     expect(screen.getByRole('heading', { name: /Periksa alamat sebelum paket berangkat/i })).toBeInTheDocument()
     expect(screen.getByText('API key sesi diperlukan')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /Alamat yang ingin dianalisis/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Cepat/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Normal/i })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.queryByText(/Alamat tidak disimpan oleh backend/i)).not.toBeInTheDocument()
   })
 

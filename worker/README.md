@@ -58,6 +58,11 @@ district, regency, province, coordinates, elevation, timezone, and an optional
 mapped village-region code. During parsing, the validator queries this table and
 fills only values that are common to every matching row.
 
+`POST /v1/parse` accepts an optional `mode` value. `normal` is the default and
+uses the configured reasoning effort and output limit. `fast` forces reasoning
+effort to `none` for GPT-5.6-compatible models and caps model output at 400
+tokens. The selected mode is returned as `meta.inference_mode`.
+
 ## Development and verification
 
 ```bash

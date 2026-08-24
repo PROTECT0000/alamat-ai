@@ -7,7 +7,8 @@ const curlExample = `curl --request POST \\
   --header 'Content-Type: application/json' \\
   --header 'X-API-Key: YOUR_API_KEY' \\
   --data '{
-    "text": "Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi"
+    "text": "Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi",
+    "mode": "normal"
   }'`
 
 const responseExample = `{
@@ -42,6 +43,7 @@ const responseExample = `{
   "clarification_message": "Kelurahan dan kecamatannya apa?",
   "meta": {
     "model": "configured-model",
+    "inference_mode": "normal",
     "llm_attempts": 1,
     "latency_ms": 1240,
     "gazetteer_version": "2025"
@@ -103,11 +105,12 @@ export function ApiDocsPage() {
           <section className="docs-section" id="request" aria-labelledby="request-title">
             <div className="docs-section-heading">
               <span><Terminal size={17} /></span>
-              <div><h2 id="request-title">Request</h2><p>Body harus berupa JSON dengan satu field <code>text</code>.</p></div>
+              <div><h2 id="request-title">Request</h2><p>Body JSON berisi alamat dan mode inference opsional.</p></div>
             </div>
             <div className="schema-table" role="table" aria-label="Request fields">
               <div className="schema-row schema-row--heading" role="row"><span>Field</span><span>Type</span><span>Description</span></div>
               <div className="schema-row" role="row"><code>text</code><span>string · required</span><span>Alamat mentah, 1–2.000 karakter.</span></div>
+              <div className="schema-row" role="row"><code>mode</code><span>fast | normal · optional</span><span><code>fast</code> mengurangi reasoning dan output token. Default: <code>normal</code>.</span></div>
             </div>
             <CodeBlock label="cURL" code={curlExample} />
           </section>

@@ -101,6 +101,15 @@ describe('AlamatAI Worker', () => {
     expect(response.status).toBe(401)
   })
 
+  it('rejects unsupported inference modes', async () => {
+    const response = await dispatch('/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-app-key' },
+      body: JSON.stringify({ text: 'Jalan Mawar 12 Depok', mode: 'turbo' }),
+    })
+    expect(response.status).toBe(400)
+  })
+
   it('extracts through an OpenAI-compatible endpoint and validates with D1', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       choices: [{ message: { content: JSON.stringify(extraction) } }],
@@ -117,7 +126,12 @@ describe('AlamatAI Worker', () => {
     expect(result.validation.status).toBe('valid')
     expect(result.address.kode_pos).toBe('16415')
     expect(result.validation.admin.desa_kelurahan.code).toBe('32.76.01.1001')
-    expect(result.meta).toMatchObject({ model: 'test-model', llm_attempts: 1, gazetteer_version: 'fixture-commit' })
+    expect(result.meta).toMatchObject({
+      model: 'test-model',
+      inference_mode: 'normal',
+      llm_attempts: 1,
+      gazetteer_version: 'fixture-commit',
+    })
     expect(fetchSpy).toHaveBeenCalledOnce()
     expect(response.headers.get('X-Request-ID')).toMatch(/^[a-f0-9]{32}$/)
   })

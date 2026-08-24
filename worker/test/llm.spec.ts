@@ -54,6 +54,22 @@ describe('OpenAICompatibleClient', () => {
     expect(body).toHaveProperty('messages.0.content', expect.stringContaining('estimasi paling mungkin'))
   })
 
+  it('reduces reasoning and output tokens in fast mode', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
+    await new OpenAICompatibleClient({
+      ...config,
+      llmModel: 'gpt-5.6-luna',
+      llmReasoningEffort: 'high',
+    }).extract('Jalan Mawar 12', 'fast')
+
+    const request = spy.mock.calls[0]?.[1]
+    const body = JSON.parse(String(request?.body)) as Record<string, unknown>
+    expect(body).toMatchObject({
+      reasoning_effort: 'none',
+      max_completion_tokens: 400,
+    })
+  })
+
   it('includes inference provenance in strict JSON schema mode', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
     await new OpenAICompatibleClient({ ...config, llmResponseFormat: 'json_schema' }).extract('Jalan Mawar 12')

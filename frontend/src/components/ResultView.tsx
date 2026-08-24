@@ -37,6 +37,7 @@ export function ResultView({ result }: { result: ParseResponse }) {
         </div>
         <StatusBadge status={result.validation.status} />
         <div className="result-meta">
+          <span>{result.meta.inference_mode === 'fast' ? 'Fast mode' : 'Normal mode'}</span>
           <span>{result.meta.latency_ms} ms</span>
           <span>{result.meta.llm_attempts} LLM attempt{result.meta.llm_attempts > 1 ? 's' : ''}</span>
           <span>{result.meta.model}</span>

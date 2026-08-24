@@ -6,6 +6,7 @@ export const addressFieldNames = [
 export type AddressField = (typeof addressFieldNames)[number]
 export const inferenceFieldNames = ['desa_kelurahan', 'kecamatan', 'kabupaten_kota', 'provinsi', 'kode_pos'] as const
 export type InferenceField = (typeof inferenceFieldNames)[number]
+export type InferenceMode = 'fast' | 'normal'
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
 export type Address = Record<AddressField, string | null>
@@ -109,6 +110,7 @@ export interface ParseResponse {
   clarification_message: string | null
   meta: {
     model: string
+    inference_mode: InferenceMode
     llm_attempts: number
     latency_ms: number
     gazetteer_version: string

@@ -28,5 +28,5 @@
   },
   "issues": [],
   "clarification_message": null,
-  "meta": { "model": "example-model", "llm_attempts": 1, "latency_ms": 180, "gazetteer_version": "example-sha" }
+  "meta": { "model": "example-model", "inference_mode": "normal", "llm_attempts": 1, "latency_ms": 180, "gazetteer_version": "example-sha" }
 }

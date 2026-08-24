@@ -61,7 +61,11 @@ export interface components {
     schemas: {
         ParseRequest: {
             text: string;
+            /** @description Fast mengurangi reasoning dan output token; normal (default) menggunakan konfigurasi reasoning Worker. */
+            mode?: components["schemas"]["InferenceMode"];
         };
+        /** @enum {string} */
+        InferenceMode: "fast" | "normal";
         Address: {
             jalan: string | null;
             nomor: string | null;
@@ -120,6 +124,7 @@ export interface components {
         };
         ParseMetadata: {
             model: string;
+            inference_mode: components["schemas"]["InferenceMode"];
             llm_attempts: number;
             /** Format: int64 */
             latency_ms: number;

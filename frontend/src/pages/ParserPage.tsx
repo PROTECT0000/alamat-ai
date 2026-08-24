@@ -4,7 +4,7 @@ import { ResultView } from '../components/ResultView'
 import { sampleAddresses, useParserStore } from '../store/useParserStore'
 
 export function ParserPage() {
-  const { text, apiKey, result, status, error, setText, setApiKey, reset, parse } = useParserStore()
+  const { text, apiKey, mode, result, status, error, setText, setApiKey, setMode, reset, parse } = useParserStore()
   const [keyDraft, setKeyDraft] = useState(apiKey)
   const [showSettings, setShowSettings] = useState(!apiKey)
 
@@ -49,6 +49,20 @@ export function ParserPage() {
               <span>Coba contoh</span>
               <div>{sampleAddresses.map((sample, index) => <button type="button" key={sample} onClick={() => setText(sample)}>Contoh {index + 1}</button>)}</div>
             </div>
+
+            <fieldset className="mode-selector">
+              <legend>Mode inference</legend>
+              <div>
+                <button className={mode === 'fast' ? 'mode-option mode-option--active' : 'mode-option'} type="button" aria-pressed={mode === 'fast'} onClick={() => setMode('fast')}>
+                  <strong>Cepat</strong>
+                  <span>Token lebih sedikit dan tanpa reasoning tambahan.</span>
+                </button>
+                <button className={mode === 'normal' ? 'mode-option mode-option--active' : 'mode-option'} type="button" aria-pressed={mode === 'normal'} onClick={() => setMode('normal')}>
+                  <strong>Normal</strong>
+                  <span>Reasoning mengikuti konfigurasi Worker.</span>
+                </button>
+              </div>
+            </fieldset>
 
             {!apiKey && <div className="key-notice"><KeyRound size={17} /><div><strong>API key sesi diperlukan</strong><span>Key disimpan hanya di session browser dan hilang saat tab ditutup.</span></div></div>}
 

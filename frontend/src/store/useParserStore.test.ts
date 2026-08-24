@@ -21,13 +21,13 @@ const response: ParseResponse = {
   },
   issues: [],
   clarification_message: null,
-  meta: { model: 'test', llm_attempts: 1, latency_ms: 42, gazetteer_version: 'test-sha' },
+  meta: { model: 'test', inference_mode: 'normal', llm_attempts: 1, latency_ms: 42, gazetteer_version: 'test-sha' },
 }
 
 describe('useParserStore', () => {
   beforeEach(() => {
     sessionStorage.clear()
-    useParserStore.setState({ text: 'Jl. Mawar 12', apiKey: '', result: null, status: 'idle', error: null })
+    useParserStore.setState({ text: 'Jl. Mawar 12', apiKey: '', mode: 'normal', result: null, status: 'idle', error: null })
     vi.restoreAllMocks()
   })
 
@@ -43,8 +43,17 @@ describe('useParserStore', () => {
     vi.spyOn(apiService, 'parseAddress').mockResolvedValue(response)
     useParserStore.setState({ apiKey: 'session-key' })
     await useParserStore.getState().parse()
-    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key')
+    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'normal')
     expect(useParserStore.getState().status).toBe('success')
     expect(useParserStore.getState().result?.validation.status).toBe('valid')
+  })
+
+  it('sends fast mode to the API', async () => {
+    vi.spyOn(apiService, 'parseAddress').mockResolvedValue({ ...response, meta: { ...response.meta, inference_mode: 'fast' } })
+    useParserStore.setState({ apiKey: 'session-key', mode: 'fast' })
+    await useParserStore.getState().parse()
+
+    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'fast')
+    expect(useParserStore.getState().result?.meta.inference_mode).toBe('fast')
   })
 })

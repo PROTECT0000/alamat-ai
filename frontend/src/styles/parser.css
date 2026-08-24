@@ -17,6 +17,15 @@
 .sample-block > div { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
 .sample-block button { padding: 6px 9px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: white; color: var(--body); font-size: 11px; cursor: pointer; }
 .sample-block button:hover { color: var(--ink); border-color: #aeb0b5; }
+.mode-selector { min-width: 0; margin: 22px 0 0; padding: 0; border: 0; }
+.mode-selector legend { padding: 0; color: var(--body); font-size: 12px; font-weight: 500; }
+.mode-selector > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
+.mode-option { min-width: 0; padding: 13px; border: 1px solid var(--line-strong); background: var(--canvas-soft); color: var(--ink); text-align: left; cursor: pointer; }
+.mode-option:hover { border-color: var(--accent-mid); }
+.mode-option--active { border-color: var(--accent-mid); background: var(--accent-soft); }
+.mode-option strong, .mode-option span { display: block; }
+.mode-option strong { font-size: 12px; font-weight: 500; }
+.mode-option span { margin-top: 5px; color: var(--body); font-size: 10px; line-height: 1.45; }
 .key-notice { margin-top: 20px; padding: 13px; display: flex; gap: 11px; border: 1px solid #ead8b8; border-radius: var(--radius-md); background: var(--warning-soft); color: var(--warning); }
 .key-notice svg { flex: 0 0 auto; margin-top: 2px; }
 .key-notice strong, .key-notice span { display: block; }
