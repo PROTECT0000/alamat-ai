@@ -110,13 +110,6 @@ input:focus-visible { outline-color: rgb(249 115 22 / 46%); }
 .candidate-list span { background: var(--surface-strong); border-color: rgb(241 195 111 / 25%); }
 .raw-json { border: 1px solid var(--line); }
 .empty-lines span { background: var(--canvas-soft); }
-.loading-heading span,
-.loading-grid span,
-.loading-wide {
-  background: linear-gradient(90deg, #21150f 25%, #302017 50%, #21150f 75%);
-  background-size: 200% 100%;
-}
-
 /* About page, footer, and responsive navigation. */
 .section--dark { background: #080604; }
 .dark-points svg { color: var(--accent-mid); }
@@ -124,6 +117,9 @@ input:focus-visible { outline-color: rgb(249 115 22 / 46%); }
 .data-card { background: var(--surface-card); }
 .site-footer { background: var(--canvas-soft); }
 .footer-grid > div:not(.footer-brand) a { color: var(--body); }
-.nav-links { background: var(--surface-card); }
+
+@media (max-width: 767px) {
+  .nav-links { background: var(--surface-card); }
+}
 
 * { scrollbar-color: #4b3428 var(--canvas); }

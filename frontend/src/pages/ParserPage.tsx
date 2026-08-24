@@ -75,7 +75,6 @@ export function ParserPage() {
             {error && <div className="error-banner" role="alert"><AlertCircle size={18} /><div><strong>{error.code ?? 'REQUEST_FAILED'}</strong><span>{error.message}</span>{error.requestId && <code>request {error.requestId}</code>}</div></div>}
           </form>
 
-          <div className="privacy-strip"><ShieldCheck size={17} /><p>Alamat tidak disimpan oleh backend. Input tetap dikirim ke provider LLM yang dikonfigurasi operator.</p></div>
         </div>
 
         <div className="result-column" aria-live="polite">
@@ -101,10 +100,19 @@ function EmptyResult() {
 
 function LoadingResult() {
   return (
-    <div className="loading-result" aria-label="Sedang menganalisis alamat">
-      <div className="loading-heading"><span /><span /></div>
-      <div className="loading-grid">{Array.from({ length: 8 }, (_, index) => <span key={index} />)}</div>
-      <div className="loading-wide" />
+    <div className="loading-result" role="status" aria-live="polite">
+      <div className="thinking-visual" aria-hidden="true">
+        <span className="thinking-orbit thinking-orbit--outer" />
+        <span className="thinking-orbit thinking-orbit--inner" />
+        <Sparkles className="thinking-icon" size={28} />
+      </div>
+      <h2>AlamatAI sedang berpikir</h2>
+      <p>Memahami teks, mencocokkan wilayah, dan menyiapkan hasil terstruktur.</p>
+      <div className="thinking-steps" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
     </div>
   )
 }

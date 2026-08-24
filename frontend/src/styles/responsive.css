@@ -47,7 +47,7 @@
   .result-meta { flex-wrap: wrap; }
   .clarification-card { grid-template-columns: 34px 1fr; }
   .clarification-card .icon-button { grid-column: 2; }
-  .empty-result { min-height: 440px; padding: 44px 28px; }
+  .empty-result, .loading-result { min-height: 440px; padding: 44px 28px; }
   .about-hero { padding: 70px 0 64px; }
   .about-hero h1 { font-size: 42px; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
