@@ -66,7 +66,7 @@ instance; unlike Cloudflare D1, the local volume does not provide replication or
 multi-node coordination.
 
 First create `worker/.dev.vars` as described above, then build and start the
-whole monorepo:
+whole monorepo with `docker-compose.yml`:
 
 ```bash
 docker compose build
