@@ -8,6 +8,8 @@ This repository is a monorepo. `worker/` contains the Cloudflare Worker API,
 `api/` is the shared OpenAPI contract, and `frontend/` contains the React + Vite
 app using React Router, Axios, Zustand, and generated OpenAPI types.
 
+![How AlamatAI works](docs/assets/alamatai-architecture.png)
+
 ## Local development without Docker
 
 Requirements: Node.js 22+ and npm.
