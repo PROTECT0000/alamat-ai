@@ -11,6 +11,21 @@ const curlExample = `curl --request POST \\
     "mode": "normal"
   }'`
 
+const clarificationExample = `curl --request POST \\
+  --url ${endpoint} \\
+  --header 'Content-Type: application/json' \\
+  --header 'X-API-Key: YOUR_API_KEY' \\
+  --data '{
+    "text": "Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi",
+    "mode": "normal",
+    "clarifications": [
+      {
+        "question": "Kabupaten Bekasi atau Kota Bekasi? Boleh dibantu nomor-nya?",
+        "answer": "Kota Bekasi, nomor 12"
+      }
+    ]
+  }'`
+
 const responseExample = `{
   "request_id": "req_01J...",
   "address": {
@@ -105,20 +120,22 @@ export function ApiDocsPage() {
           <section className="docs-section" id="request" aria-labelledby="request-title">
             <div className="docs-section-heading">
               <span><Terminal size={17} /></span>
-              <div><h2 id="request-title">Request</h2><p>Body JSON berisi alamat dan mode inference opsional.</p></div>
+              <div><h2 id="request-title">Request</h2><p>Body JSON berisi alamat, mode inference, dan riwayat klarifikasi opsional.</p></div>
             </div>
             <div className="schema-table" role="table" aria-label="Request fields">
               <div className="schema-row schema-row--heading" role="row"><span>Field</span><span>Type</span><span>Description</span></div>
               <div className="schema-row" role="row"><code>text</code><span>string · required</span><span>Alamat mentah, 1–2.000 karakter.</span></div>
               <div className="schema-row" role="row"><code>mode</code><span>fast | normal · optional</span><span><code>fast</code> mengurangi reasoning dan output token. Default: <code>normal</code>.</span></div>
+              <div className="schema-row" role="row"><code>clarifications</code><span>array · optional</span><span>Maksimal 8 pasangan <code>question</code> dan <code>answer</code>. Seluruh riwayat dikirim ulang setiap reply.</span></div>
             </div>
             <CodeBlock label="cURL" code={curlExample} />
+            <CodeBlock label="Reply klarifikasi" code={clarificationExample} />
           </section>
 
           <section className="docs-section" id="response" aria-labelledby="response-title">
             <div className="docs-section-heading">
               <span><CheckCircle2 size={17} /></span>
-              <div><h2 id="response-title">Response</h2><p>HTTP 200 berarti request selesai diproses. Periksa <code>validation.status</code> untuk hasil validasinya.</p></div>
+              <div><h2 id="response-title">Response</h2><p>HTTP 200 berarti request selesai diproses. Jika <code>clarification_message</code> terisi, kirim pertanyaan itu bersama jawaban pengguna pada request berikutnya.</p></div>
             </div>
             <div className="response-statuses">
               <article><code>valid</code><p>Hierarchy administratif cocok dan tidak ada masalah pemblokir.</p></article>

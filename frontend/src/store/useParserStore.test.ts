@@ -24,10 +24,25 @@ const response: ParseResponse = {
   meta: { model: 'test', inference_mode: 'normal', llm_attempts: 1, latency_ms: 42, gazetteer_version: 'test-sha' },
 }
 
+const clarificationResponse: ParseResponse = {
+  ...response,
+  validation: { ...response.validation, status: 'needs_clarification' },
+  clarification_message: 'Boleh dibantu nomor rumahnya?',
+}
+
 describe('useParserStore', () => {
   beforeEach(() => {
     sessionStorage.clear()
-    useParserStore.setState({ text: 'Jl. Mawar 12', apiKey: '', mode: 'normal', result: null, status: 'idle', error: null })
+    useParserStore.setState({
+      text: 'Jl. Mawar 12',
+      apiKey: '',
+      mode: 'normal',
+      clarifications: [],
+      replyDraft: '',
+      result: null,
+      status: 'idle',
+      error: null,
+    })
     vi.restoreAllMocks()
   })
 
@@ -43,7 +58,7 @@ describe('useParserStore', () => {
     vi.spyOn(apiService, 'parseAddress').mockResolvedValue(response)
     useParserStore.setState({ apiKey: 'session-key' })
     await useParserStore.getState().parse()
-    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'normal')
+    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'normal', [])
     expect(useParserStore.getState().status).toBe('success')
     expect(useParserStore.getState().result?.validation.status).toBe('valid')
   })
@@ -53,7 +68,41 @@ describe('useParserStore', () => {
     useParserStore.setState({ apiKey: 'session-key', mode: 'fast' })
     await useParserStore.getState().parse()
 
-    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'fast')
+    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar 12', 'session-key', 'fast', [])
     expect(useParserStore.getState().result?.meta.inference_mode).toBe('fast')
+  })
+
+  it('sends the complete clarification history and fills the next result', async () => {
+    vi.spyOn(apiService, 'parseAddress').mockResolvedValue(response)
+    useParserStore.setState({
+      apiKey: 'session-key',
+      text: 'Jl. Mawar Bekasi',
+      result: clarificationResponse,
+      replyDraft: 'Nomor 12',
+    })
+    await useParserStore.getState().reply()
+
+    expect(apiService.parseAddress).toHaveBeenCalledWith('Jl. Mawar Bekasi', 'session-key', 'normal', [
+      { question: 'Boleh dibantu nomor rumahnya?', answer: 'Nomor 12' },
+    ])
+    expect(useParserStore.getState()).toMatchObject({
+      result: response,
+      clarifications: [{ question: 'Boleh dibantu nomor rumahnya?', answer: 'Nomor 12' }],
+      replyDraft: '',
+      status: 'success',
+    })
+  })
+
+  it('clears clarification history when the original address changes', () => {
+    useParserStore.setState({
+      result: clarificationResponse,
+      clarifications: [{ question: 'Nomor?', answer: '12' }],
+      replyDraft: 'draft',
+    })
+    useParserStore.getState().setText('Alamat baru')
+
+    expect(useParserStore.getState()).toMatchObject({
+      text: 'Alamat baru', result: null, clarifications: [], replyDraft: '', status: 'idle',
+    })
   })
 })

@@ -48,8 +48,7 @@
   .result-summary { grid-template-columns: 1fr; gap: 13px; }
   .status-badge { justify-self: start; }
   .result-meta { flex-wrap: wrap; }
-  .clarification-card { grid-template-columns: 34px 1fr; }
-  .clarification-card .icon-button { grid-column: 2; }
+  .chat-bubble { max-width: 94%; }
   .empty-result, .loading-result { min-height: 440px; padding: 44px 28px; }
   .api-docs-hero { padding: 64px 0 54px; }
   .api-docs-layout { padding-block: 42px 76px; }

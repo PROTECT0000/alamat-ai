@@ -56,6 +56,13 @@ paths:
               messyAddress:
                 value:
                   text: Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi
+              clarificationReply:
+                value:
+                  text: Jl. Mawar gg 3 depan masjid Al-Ikhlas RT 5/2 Bekasi
+                  mode: normal
+                  clarifications:
+                    - question: Alamatnya berada di Kabupaten Bekasi atau Kota Bekasi ya? Boleh dibantu nomor-nya?
+                      answer: Kota Bekasi, nomor 12
       responses:
         '200':
           description: Address was processed. Inspect validation.status for the result.
@@ -109,6 +116,27 @@ components:
         mode:
           $ref: '#/components/schemas/InferenceMode'
           description: Fast mengurangi reasoning dan output token; normal (default) menggunakan konfigurasi reasoning Worker.
+        clarifications:
+          type: array
+          maxItems: 8
+          description: Riwayat tanya-jawab klarifikasi. Kirim ulang seluruh turn pada setiap reply; backend tidak menyimpan sesi.
+          items:
+            $ref: '#/components/schemas/ClarificationTurn'
+    ClarificationTurn:
+      type: object
+      additionalProperties: false
+      required: [question, answer]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 320
+          description: clarification_message dari respons sebelumnya.
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Jawaban pengguna yang mengisi atau mengoreksi detail alamat.
     InferenceMode:
       type: string
       enum: [fast, normal]

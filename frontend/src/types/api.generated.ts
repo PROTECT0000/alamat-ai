@@ -63,6 +63,14 @@ export interface components {
             text: string;
             /** @description Fast mengurangi reasoning dan output token; normal (default) menggunakan konfigurasi reasoning Worker. */
             mode?: components["schemas"]["InferenceMode"];
+            /** @description Riwayat tanya-jawab klarifikasi. Kirim ulang seluruh turn pada setiap reply; backend tidak menyimpan sesi. */
+            clarifications?: components["schemas"]["ClarificationTurn"][];
+        };
+        ClarificationTurn: {
+            /** @description clarification_message dari respons sebelumnya. */
+            question: string;
+            /** @description Jawaban pengguna yang mengisi atau mengoreksi detail alamat. */
+            answer: string;
         };
         /** @enum {string} */
         InferenceMode: "fast" | "normal";

@@ -177,10 +177,11 @@ The frontend asks for the application API key at runtime and keeps it only in
 
 ## Privacy
 
-The service does not persist address requests and deliberately excludes raw
-address text, recipient names, contact numbers, API keys, and raw model output
-from logs. The full input is sent to the configured LLM provider. Local
-processing may only be claimed when `LLM_BASE_URL` points to a local model.
+The service does not persist address requests or clarification replies and
+deliberately excludes raw address text, recipient names, contact numbers, API
+keys, and raw model output from logs. The full input and clarification history
+are sent to the configured LLM provider on every reply. Local processing may
+only be claimed when `LLM_BASE_URL` points to a local model.
 
 ## Data terminology
 

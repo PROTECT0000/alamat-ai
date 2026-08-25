@@ -4,7 +4,23 @@ import { ResultView } from '../components/ResultView'
 import { sampleAddresses, useParserStore } from '../store/useParserStore'
 
 export function ParserPage() {
-  const { text, apiKey, mode, result, status, error, setText, setApiKey, setMode, reset, parse } = useParserStore()
+  const {
+    text,
+    apiKey,
+    mode,
+    clarifications,
+    replyDraft,
+    result,
+    status,
+    error,
+    setText,
+    setApiKey,
+    setMode,
+    setReplyDraft,
+    reset,
+    parse,
+    reply,
+  } = useParserStore()
   const [keyDraft, setKeyDraft] = useState(apiKey)
   const [showSettings, setShowSettings] = useState(!apiKey)
 
@@ -92,8 +108,17 @@ export function ParserPage() {
         </div>
 
         <div className="result-column" aria-live="polite">
-          {status === 'loading' && <LoadingResult />}
-          {status !== 'loading' && result && <ResultView result={result} />}
+          {status === 'loading' && !result && <LoadingResult />}
+          {result && (
+            <ResultView
+              result={result}
+              clarifications={clarifications}
+              replyDraft={replyDraft}
+              isReplying={status === 'loading'}
+              onReplyDraftChange={setReplyDraft}
+              onReply={() => void reply()}
+            />
+          )}
           {status !== 'loading' && !result && <EmptyResult />}
         </div>
       </section>

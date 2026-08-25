@@ -9,6 +9,11 @@ export type InferenceField = (typeof inferenceFieldNames)[number]
 export type InferenceMode = 'fast' | 'normal'
 export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
+export interface ClarificationTurn {
+  question: string
+  answer: string
+}
+
 export type Address = Record<AddressField, string | null>
 
 export interface ExtractedAddress extends Address {

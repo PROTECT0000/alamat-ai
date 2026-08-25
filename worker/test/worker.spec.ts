@@ -110,6 +110,21 @@ describe('AlamatAI Worker', () => {
     expect(response.status).toBe(400)
   })
 
+  it('rejects more than eight clarification replies before contacting the provider', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const response = await dispatch('/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-app-key' },
+      body: JSON.stringify({
+        text: 'Jalan Mawar Bekasi',
+        clarifications: Array.from({ length: 9 }, (_, index) => ({ question: `Pertanyaan ${index}`, answer: `Jawaban ${index}` })),
+      }),
+    })
+
+    expect(response.status).toBe(422)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('extracts through an OpenAI-compatible endpoint and validates with D1', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       choices: [{ message: { content: JSON.stringify(extraction) } }],
@@ -134,6 +149,29 @@ describe('AlamatAI Worker', () => {
     })
     expect(fetchSpy).toHaveBeenCalledOnce()
     expect(response.headers.get('X-Request-ID')).toMatch(/^[a-f0-9]{32}$/)
+  })
+
+  it('forwards clarification history to the model for a stateless follow-up', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify(extraction) } }],
+    }), { headers: { 'Content-Type': 'application/json' } }))
+
+    const response = await dispatch('/v1/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-app-key' },
+      body: JSON.stringify({
+        text: 'Jalan Mawar, Depok',
+        mode: 'normal',
+        clarifications: [{ question: 'Boleh dibantu nomor-nya?', answer: 'Nomor 12' }],
+      }),
+    })
+    const providerRequest = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body))
+    const providerPayload = JSON.parse(providerRequest.messages[1].content)
+
+    expect(response.status).toBe(200)
+    expect(providerPayload.klarifikasi).toEqual([
+      { pertanyaan: 'Boleh dibantu nomor-nya?', jawaban: 'Nomor 12' },
+    ])
   })
 })
 

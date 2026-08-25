@@ -70,6 +70,25 @@ describe('OpenAICompatibleClient', () => {
     })
   })
 
+  it('sends ordered clarification replies as untrusted extraction data', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
+    await new OpenAICompatibleClient(config).extract('Jalan Mawar Bekasi', 'normal', [
+      { question: 'Kabupaten Bekasi atau Kota Bekasi?', answer: 'Kota Bekasi' },
+      { question: 'Boleh dibantu nomor-nya?', answer: 'Nomor 12' },
+    ])
+
+    const body = JSON.parse(String(spy.mock.calls[0]?.[1]?.body))
+    const payload = JSON.parse(body.messages[1].content)
+    expect(payload).toEqual({
+      alamat_awal: 'Jalan Mawar Bekasi',
+      klarifikasi: [
+        { pertanyaan: 'Kabupaten Bekasi atau Kota Bekasi?', jawaban: 'Kota Bekasi' },
+        { pertanyaan: 'Boleh dibantu nomor-nya?', jawaban: 'Nomor 12' },
+      ],
+    })
+    expect(body.messages[0].content).toContain('jawaban paling akhir menggantikan fakta lama')
+  })
+
   it('includes inference provenance in strict JSON schema mode', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(chatResponse(JSON.stringify(extraction)))
     await new OpenAICompatibleClient({ ...config, llmResponseFormat: 'json_schema' }).extract('Jalan Mawar 12')

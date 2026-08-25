@@ -100,7 +100,6 @@ input:focus-visible { outline-color: rgb(249 115 22 / 46%); }
 .key-notice { border-color: rgb(241 195 111 / 27%); }
 .api-key-panel { background: var(--canvas-soft); }
 .error-banner { border-color: rgb(255 140 148 / 28%); }
-.clarification-card { border: 1px solid var(--line-strong); }
 .field-item--empty { background: var(--canvas-soft); }
 .field-item--empty strong { color: var(--muted); }
 .admin-node { background: var(--surface-strong); }

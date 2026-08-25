@@ -2,10 +2,11 @@ import { generateClarification } from './clarification'
 import { ConfigError, configIssues, loadConfig, type ConfigIssue } from './config'
 import { D1Gazetteer } from './gazetteer'
 import { LLMError, OpenAICompatibleClient } from './llm'
-import type { InferenceMode, ParseResponse, WorkerEnv } from './types'
+import type { ClarificationTurn, InferenceMode, ParseResponse, WorkerEnv } from './types'
 import { Validator } from './validation'
 
 const maxRequestBody = 16 * 1024
+const maxClarificationTurns = 8
 
 type APIErrorCode =
   | 'INVALID_REQUEST'
@@ -108,8 +109,20 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
   if (!isParseBody(body)) return errorResponse(400, 'INVALID_REQUEST', 'Request JSON tidak valid.', requestId)
   const text = body.text.trim()
   const mode = body.mode ?? 'normal'
+  const clarifications = (body.clarifications ?? []).map(({ question, answer }) => ({
+    question: question.trim(),
+    answer: answer.trim(),
+  }))
   if (!text || Array.from(text).length > 2000) {
     return errorResponse(422, 'VALIDATION_ERROR', 'Text wajib berisi 1 sampai 2.000 karakter.', requestId)
+  }
+  if (!validClarifications(clarifications)) {
+    return errorResponse(
+      422,
+      'VALIDATION_ERROR',
+      'Klarifikasi maksimal 8 balasan; pertanyaan wajib 1–320 karakter dan jawaban 1–1.000 karakter.',
+      requestId,
+    )
   }
 
   let config
@@ -133,7 +146,7 @@ async function parse(request: Request, env: WorkerEnv, requestId: string): Promi
     const pipelineStarted = Date.now()
     const repository = new D1Gazetteer(env.DB)
     const gazetteerVersion = await repository.version()
-    const extracted = await new OpenAICompatibleClient(config).extract(text, mode)
+    const extracted = await new OpenAICompatibleClient(config).extract(text, mode, clarifications)
     const validation = await new Validator(repository, config.fuzzyThreshold).validate(extracted.address)
     const result: ParseResponse = {
       request_id: requestId,
@@ -207,14 +220,34 @@ async function secureEqual(left: string, right: string): Promise<boolean> {
   return difference === 0 && left.length > 0 && right.length > 0
 }
 
-function isParseBody(value: unknown): value is { text: string; mode?: InferenceMode } {
+function isParseBody(value: unknown): value is { text: string; mode?: InferenceMode; clarifications?: ClarificationTurn[] } {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
-  const body = value as { text?: unknown; mode?: unknown }
+  const body = value as { text?: unknown; mode?: unknown; clarifications?: unknown }
   const keys = Object.keys(value)
-  return keys.length >= 1 && keys.length <= 2
-    && keys.every((key) => key === 'text' || key === 'mode')
+  return keys.length >= 1 && keys.length <= 3
+    && keys.every((key) => key === 'text' || key === 'mode' || key === 'clarifications')
     && typeof body.text === 'string'
     && (body.mode === undefined || body.mode === 'fast' || body.mode === 'normal')
+    && (body.clarifications === undefined
+      || (Array.isArray(body.clarifications) && body.clarifications.every(isClarificationTurn)))
+}
+
+function isClarificationTurn(value: unknown): value is ClarificationTurn {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  const turn = value as { question?: unknown; answer?: unknown }
+  const keys = Object.keys(value)
+  return keys.length === 2
+    && keys.every((key) => key === 'question' || key === 'answer')
+    && typeof turn.question === 'string'
+    && typeof turn.answer === 'string'
+}
+
+function validClarifications(clarifications: ClarificationTurn[]): boolean {
+  return clarifications.length <= maxClarificationTurns && clarifications.every(({ question, answer }) => {
+    const questionLength = Array.from(question).length
+    const answerLength = Array.from(answer).length
+    return questionLength >= 1 && questionLength <= 320 && answerLength >= 1 && answerLength <= 1000
+  })
 }
 
 async function readLimitedBody(request: Request, limit: number): Promise<Uint8Array | null> {

@@ -85,6 +85,13 @@ uses the configured reasoning effort and output limit. `fast` forces reasoning
 effort to `none` for GPT-5.6-compatible models and caps model output at 400
 tokens. The selected mode is returned as `meta.inference_mode`.
 
+Clarification is stateless. When a response contains `clarification_message`,
+the client can call `POST /v1/parse` again with the same `text` and a
+`clarifications` array containing the question and the user's answer. Send the
+complete ordered history on every reply. The Worker accepts at most eight turns,
+does not persist them, and asks the model to merge explicit replies into the
+final structured address before running deterministic D1 validation again.
+
 ## Development and verification
 
 ```bash
