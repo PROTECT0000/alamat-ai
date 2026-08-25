@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "alamatai-api-selfhost",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-20",
+  "secrets": {
+    "required": ["APP_API_KEY"]
+  },
+  "vars": {
+    "LLM_API_KEY": "",
+    "LLM_BASE_URL": "https://api.openai.com/v1",
+    "LLM_MODEL": "replace-me",
+    "LLM_TIMEOUT_MS": "20000",
+    "LLM_MAX_OUTPUT_TOKENS": "800",
+    "LLM_REASONING_EFFORT": "none",
+    "LLM_RESPONSE_FORMAT": "prompt",
+    "FUZZY_THRESHOLD": "0.82",
+    "CORS_ORIGINS": "*",
+    "SERVICE_VERSION": "0.2.0-selfhost"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alamatai-gazetteer",
+      "database_id": "local-alamatai-gazetteer",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

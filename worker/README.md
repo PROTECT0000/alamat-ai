@@ -29,7 +29,29 @@ npx wrangler secret put LLM_API_KEY
 ```
 
 For local development, copy `.dev.vars.example` to `.dev.vars`. Never commit
-`.dev.vars`.
+`.dev.vars`. Local development commands use `wrangler.selfhost.jsonc`; production
+deploy and remote D1 commands continue to use `wrangler.jsonc`.
+
+## Self-hosted workerd container
+
+`worker/Dockerfile` runs the Worker through Wrangler/Miniflare and its pinned
+`workerd` runtime. It uses `wrangler.selfhost.jsonc`, so it never connects the
+self-hosted process to the production Cloudflare D1 database. Runtime variables
+are read from container environment variables; use `.dev.vars` with Docker's
+`--env-file` option.
+
+The container accepts these commands:
+
+- `serve` applies migrations, conditionally seeds D1, and listens on port 8787.
+- `migrate` applies pending local D1 migrations and exits.
+- `seed` applies migrations, replaces gazetteer data with the pinned snapshot,
+  and exits.
+
+The image generates the checksum-verified seed at build time. Mount `/data` as
+a persistent volume. With the default `ALAMATAI_SEED_DATABASE=auto`, the seed is
+loaded only when its checksum marker is absent. `always` reloads it on each
+start; `never` only runs migrations. See the root `README.md` for complete
+Docker Compose, backend-only, frontend-only, and reseeding commands.
 
 ## D1 setup
 

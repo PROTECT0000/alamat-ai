@@ -1,5 +1,8 @@
 .git
-.env
+**/.env
+**/.env.*
+**/.dev.vars
+**/.dev.vars.*
 coverage.out
 frontend/node_modules
 frontend/dist
@@ -11,6 +14,7 @@ worker/node_modules
 worker/dist
 worker/.wrangler
 worker/.generated
+data/*.sqlite
+data/*.sqlite-*
 plan
 docs
-data/raw

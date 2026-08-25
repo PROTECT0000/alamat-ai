@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --config wrangler.selfhost.jsonc",
     "deploy": "wrangler deploy",
     "build": "wrangler deploy --dry-run --outdir dist",
     "types": "wrangler types src/worker-configuration.d.ts --strict-vars=false",
@@ -12,10 +12,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate:local": "wrangler d1 migrations apply alamatai-gazetteer --local",
+    "db:migrate:local": "wrangler d1 migrations apply alamatai-gazetteer --config wrangler.selfhost.jsonc --local",
     "db:migrate:remote": "wrangler d1 migrations apply alamatai-gazetteer --remote",
     "db:seed:generate": "node scripts/generate-d1-seed.mjs",
-    "db:seed:local": "npm run db:seed:generate && wrangler d1 execute alamatai-gazetteer --local --file=.generated/gazetteer-seed.sql",
+    "db:seed:local": "npm run db:seed:generate && wrangler d1 execute alamatai-gazetteer --config wrangler.selfhost.jsonc --local --file=.generated/gazetteer-seed.sql",
     "db:seed:remote": "npm run db:seed:generate && wrangler d1 execute alamatai-gazetteer --remote --file=.generated/gazetteer-seed.sql",
     "data:verify": "node scripts/generate-d1-seed.mjs --verify-only"
   },
