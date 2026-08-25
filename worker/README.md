@@ -38,7 +38,9 @@ deploy and remote D1 commands continue to use `wrangler.jsonc`.
 `workerd` runtime. It uses `wrangler.selfhost.jsonc`, so it never connects the
 self-hosted process to the production Cloudflare D1 database. Runtime variables
 are read from container environment variables; use `.dev.vars` with Docker's
-`--env-file` option.
+`--env-file` option. The image includes `ca-certificates` and `curl`, with the
+Debian CA bundle configured for curl and Node-based processes so HTTPS LLM
+provider calls work in the slim container.
 
 The container accepts these commands:
 

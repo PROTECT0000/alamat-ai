@@ -2,6 +2,16 @@ FROM node:22-bookworm-slim
 
 ENV CI=true
 ENV ALAMATAI_DATA_DIR=/data
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
+# The slim base image does not guarantee a system CA bundle or curl. Both are
+# needed for HTTPS LLM providers and for connectivity checks inside the image.
+RUN apt-get update \
+  && apt-get install --yes --no-install-recommends ca-certificates curl \
+  && update-ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/worker
 

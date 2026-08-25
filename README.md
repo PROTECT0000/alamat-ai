@@ -65,7 +65,9 @@ curl http://localhost:8787/readyz
 The backend image runs Wrangler/Miniflare's pinned `workerd` runtime and a local
 D1-compatible SQLite database. This is intended for a single self-hosted
 instance; unlike Cloudflare D1, the local volume does not provide replication or
-multi-node coordination.
+multi-node coordination. The image includes the Debian CA certificate bundle
+and `curl`, allowing HTTPS calls to LLM providers and connectivity checks from
+inside the container.
 
 First create `worker/.dev.vars` as described above, then build and start the
 whole monorepo with `docker-compose.yml`:
